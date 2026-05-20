@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Eksik Evraklar</title>
+<style>
+body{font-family:Arial;background:#f4f6f8;margin:0;font-size:13px;}
+.top{background:#ef6c00;color:white;padding:15px;font-weight:bold;font-size:22px;}
+.wrap{padding:15px;}
+.box{background:white;padding:15px;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,0.1);margin-bottom:15px;}
+a{color:#1565c0;font-weight:bold;text-decoration:none;}
+table{width:100%;border-collapse:collapse;background:white;}
+th{background:#0b6b53;color:white;padding:10px;text-align:left;}
+td{padding:8px;border-bottom:1px solid #eee;vertical-align:top;}
+.bad{color:#c62828;font-weight:bold;}
+.ok{color:#0b8f45;font-weight:bold;}
+.btn{background:#1565c0;color:white;padding:6px 10px;border-radius:5px;display:inline-block;}
+</style>
+</head>
+<body>
+<div class="top">Eksik Evrak Listesi</div>
+<div class="wrap">
+<div class="box"><a href="{% url 'ana_sayfa' %}">← Ana Sayfa</a></div>
+<div class="box">
+<table>
+<thead>
+<tr>
+<th>İş Kodu</th>
+<th>Müşteri</th>
+<th>İş</th>
+<th>Plaka</th>
+<th>Eksik Sayısı</th>
+<th>Yükleme</th>
+<th>Gümrük</th>
+<th>Yurtdışı</th>
+<th>Boşaltma</th>
+<th>İşlem</th>
+</tr>
+</thead>
+<tbody>
+{% for i in isler %}
+<tr>
+<td><b>{{ i.is_kodu }}</b></td>
+<td>{{ i.musteri_adi }}</td>
+<td>{{ i.isin_adi }}</td>
+<td>{{ i.plaka }}</td>
+<td class="bad">{{ i.eksik_evrak_sayisi }}</td>
+<td>{% if i.yukleme_evraklari %}<span class="ok">Var</span>{% else %}<span class="bad">Eksik</span>{% endif %}</td>
+<td>{% if i.gumruk_evraklari %}<span class="ok">Var</span>{% else %}<span class="bad">Eksik</span>{% endif %}</td>
+<td>{% if i.yurtdisi_evraklari %}<span class="ok">Var</span>{% else %}<span class="bad">Eksik</span>{% endif %}</td>
+<td>{% if i.bosaltma_evraklari %}<span class="ok">Var</span>{% else %}<span class="bad">Eksik</span>{% endif %}</td>
+<td><a class="btn" href="{% url 'is_duzenle' i.id %}">Düzenle</a></td>
+</tr>
+{% empty %}
+<tr><td colspan="10">Eksik evraklı aktif iş yok.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Excel Import</title>
+<style>
+body { font-family: Arial; background:#f5f7f6; margin:0; font-size:13px; }
+.top { background:#0b6b53; color:white; padding:15px; font-weight:bold; }
+.wrap { padding:15px; }
+.box { background:white; padding:15px; margin-bottom:15px; border-radius:8px; box-shadow:0 1px 5px #ddd; }
+button, .btn { background:#0b6b53; color:white; padding:10px 15px; border:0; border-radius:5px; text-decoration:none; display:inline-block; }
+.blue { background:#007bff; }
+</style>
+</head>
+<body>
+
+<div class="top">Excel Import</div>
+
+<div class="wrap">
+
+<div class="box">
+    <a class="btn blue" href="{% url 'excel_sablon' %}">Boş Excel Şablonu İndir</a>
+    <a class="btn" href="{% url 'ana_sayfa' %}">Ana Sayfaya Dön</a>
+</div>
+
+<div class="box">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h3>Excel Dosyası Yükle</h3>
+        <input type="file" name="excel_dosyasi" accept=".xlsx">
+        <br><br>
+        <button type="submit">İçe Aktar</button>
+    </form>
+</div>
+
+{% if mesaj %}
+<div class="box">
+    <b>{{ mesaj }}</b>
+</div>
+{% endif %}
+
+</div>
+
+</body>
+</html>

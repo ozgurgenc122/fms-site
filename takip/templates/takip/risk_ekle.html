@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Risk Kaydı Ekle</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#f5f7f6;
+    margin:0;
+}
+
+.top{
+    background:#0b6b53;
+    color:white;
+    padding:15px;
+    font-weight:bold;
+}
+
+.wrap{
+    padding:15px;
+}
+
+.box{
+    background:white;
+    padding:15px;
+    border-radius:8px;
+    box-shadow:0 1px 5px #ddd;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+}
+
+input,select,textarea{
+    width:100%;
+    padding:8px;
+    box-sizing:border-box;
+}
+
+button{
+    background:#0b6b53;
+    color:white;
+    border:0;
+    padding:10px 15px;
+    border-radius:5px;
+}
+
+textarea{
+    height:120px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top">
+Yeni Risk Kaydı
+</div>
+
+<div class="wrap">
+
+<div class="box">
+
+<form method="POST">
+{% csrf_token %}
+
+<div class="grid">
+
+<div>
+<label>Firma / Nakliyeci</label>
+<input name="firma_adi">
+</div>
+
+<div>
+<label>Şoför</label>
+<input name="sofor_adi">
+</div>
+
+<div>
+<label>Plaka</label>
+<input name="plaka">
+</div>
+
+<div>
+<label>Sorun Tipi</label>
+<select name="sorun_tipi">
+<option>Gecikme</option>
+<option>Evrak Sorunu</option>
+<option>Hasar</option>
+<option>İletişim Kötü</option>
+<option>Ödeme Sorunu</option>
+<option>Sahte Bilgi</option>
+<option>Diğer</option>
+</select>
+</div>
+
+</div>
+
+<br>
+
+<label>Açıklama</label>
+<textarea name="aciklama"></textarea>
+
+<br><br>
+
+<button type="submit">Kaydet</button>
+
+<a href="/riskler/">Listeye Dön</a>
+
+</form>
+
+</div>
+
+</div>
+
+</body>
+</html>

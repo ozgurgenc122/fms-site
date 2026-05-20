@@ -1,0 +1,322 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>FMS İş Takip Paneli</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#f4f6f8;font-size:13px;}
+.topbar{background:#0b6b53;color:white;padding:15px;}
+.topbar h1{margin:0;font-size:24px;}
+.wrap{padding:15px;}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px;}
+.card{background:white;padding:15px;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,0.1);}
+.card h3{margin:0;color:#777;font-size:13px;}
+.card .big{margin-top:10px;font-size:24px;font-weight:bold;}
+.green{color:#0b8f45;}
+.red{color:#c62828;}
+.orange{color:#ef6c00;}
+.blue{color:#1565c0;}
+.filter-box,.table-box{background:white;padding:15px;border-radius:10px;margin-bottom:20px;box-shadow:0 1px 5px rgba(0,0,0,0.1);}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
+input,select{width:100%;padding:8px;box-sizing:border-box;}
+button{background:#0b6b53;color:white;border:0;padding:10px 15px;border-radius:6px;cursor:pointer;}
+.exportbar{margin-bottom:15px;display:flex;gap:10px;flex-wrap:wrap;}
+.exportbar a{background:#0b6b53;color:white;padding:10px 12px;border-radius:6px;text-decoration:none;font-size:13px;}
+.table-box{overflow:auto;}
+table{width:100%;border-collapse:collapse;min-width:1150px;}
+th{background:#0b6b53;color:white;padding:10px;text-align:left;position:sticky;top:0;}
+td{padding:8px;border-bottom:1px solid #eee;vertical-align:top;}
+tr:hover{background:#f8f8f8;}
+.kar{font-weight:bold;}
+.kar-plus{color:#0b8f45;}
+.kar-minus{color:#c62828;}
+.risk{color:#c62828;font-weight:bold;}
+.warning{color:#ef6c00;font-weight:bold;}
+.links{display:flex;gap:5px;flex-wrap:wrap;}
+.links a{text-decoration:none;padding:6px 10px;border-radius:5px;color:white;font-size:12px;}
+.show{background:#2e7d32;}
+.edit{background:#1565c0;}
+.copy{background:#ef6c00;}
+.delete{background:#c62828;}
+.row-risk{background:#fff1f1;}
+.row-warning{background:#fff8e1;}
+
+@media(max-width:900px){
+.cards{grid-template-columns:repeat(2,1fr);}
+.grid{grid-template-columns:repeat(2,1fr);}
+table{min-width:1000px;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+<h1>FMS İş Takip Paneli</h1>
+</div>
+
+<div class="wrap">
+
+{% if messages %}
+<div class="filter-box">
+{% for message in messages %}
+<div class="{{ message.tags }}">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="cards">
+
+<div class="card">
+<h3>Toplam İş</h3>
+<div class="big blue">{{ isler.count }}</div>
+</div>
+
+<div class="card">
+<h3>EUR Kâr/Zarar</h3>
+
+<div class="red">
+Maliyet: {{ toplamlar.EUR.maliyet|floatformat:2 }} EUR
+</div>
+
+<div class="green">
+Satış: {{ toplamlar.EUR.satis|floatformat:2 }} EUR
+</div>
+
+{% if toplamlar.EUR.kar >= 0 %}
+<div class="big green">
+{{ toplamlar.EUR.kar|floatformat:2 }} EUR
+</div>
+{% else %}
+<div class="big red">
+{{ toplamlar.EUR.kar|floatformat:2 }} EUR
+</div>
+{% endif %}
+</div>
+
+
+<div class="card">
+<h3>USD Kâr/Zarar</h3>
+
+<div class="red">
+Maliyet: {{ toplamlar.USD.maliyet|floatformat:2 }} USD
+</div>
+
+<div class="green">
+Satış: {{ toplamlar.USD.satis|floatformat:2 }} USD
+</div>
+
+{% if toplamlar.USD.kar >= 0 %}
+<div class="big green">
+{{ toplamlar.USD.kar|floatformat:2 }} USD
+</div>
+{% else %}
+<div class="big red">
+{{ toplamlar.USD.kar|floatformat:2 }} USD
+</div>
+{% endif %}
+</div>
+
+
+<div class="card">
+<h3>TRY Kâr/Zarar</h3>
+
+<div class="red">
+Maliyet: {{ toplamlar.TRY.maliyet|floatformat:2 }} TRY
+</div>
+
+<div class="green">
+Satış: {{ toplamlar.TRY.satis|floatformat:2 }} TRY
+</div>
+
+{% if toplamlar.TRY.kar >= 0 %}
+<div class="big green">
+{{ toplamlar.TRY.kar|floatformat:2 }} TRY
+</div>
+{% else %}
+<div class="big red">
+{{ toplamlar.TRY.kar|floatformat:2 }} TRY
+</div>
+{% endif %}
+</div>
+
+</div>
+
+<div class="card">
+<h3>Toplam Maliyet</h3>
+<div class="big red">{{ toplam_maliyet|floatformat:2 }}</div>
+</div>
+
+<div class="card">
+<h3>Toplam Satış</h3>
+<div class="big green">{{ toplam_satis|floatformat:2 }}</div>
+</div>
+
+<div class="card">
+<h3>Toplam Kâr</h3>
+{% if toplam_kar >= 0 %}
+<div class="big green">{{ toplam_kar|floatformat:2 }}</div>
+{% else %}
+<div class="big red">{{ toplam_kar|floatformat:2 }}</div>
+{% endif %}
+</div>
+</div>
+
+<div class="exportbar">
+<a href="{% url 'is_ekle' %}">+ Yeni İş</a>
+<a href="{% url 'excel_isler' %}">Excel İş Listesi</a>
+<a href="{% url 'excel_musteriler' %}">Müşteri Raporu</a>
+<a href="{% url 'excel_konumlar' %}">Devam Eden Konumlar</a>
+<a href="{% url 'excel_import' %}">Excel İçe Aktar</a>
+<a href="{% url 'excel_sablon' %}">Import Şablonu</a>
+<a href="{% url 'yedek_listesi' %}">Yedekler</a>
+<a href="{% url 'yedek_al' %}">Yedek Al</a>
+<a href="{% url 'cari_listesi' %}">Cari Listesi</a>
+<a href="{% url 'risk_listesi' %}">Risk Listesi</a>
+<a href="{% url 'tamamlanan_isler' %}">Tamamlanan İşler</a>
+<a href="{% url 'eksik_evraklar' %}" style="background:#ef6c00;">Eksik Evraklar</a>
+<a href="{% url 'guvenli_cikis' %}" style="background:#c62828;">Güvenli Çıkış</a>
+</div>
+
+<div class="filter-box">
+<form method="GET">
+<div class="grid">
+<input type="date" name="baslangic" value="{{ baslangic }}">
+<input type="date" name="bitis" value="{{ bitis }}">
+<input type="text" name="musteri" placeholder="Müşteri Ara" value="{{ musteri }}">
+<input type="text" name="plaka" placeholder="Plaka Ara" value="{{ plaka }}">
+<input type="text" name="hat" placeholder="Hat Ara" value="{{ hat }}">
+
+<select name="durum">
+<option value="">Durum Seç</option>
+<option value="Teklif" {% if durum == "Teklif" %}selected{% endif %}>Teklif</option>
+<option value="Planlandı" {% if durum == "Planlandı" %}selected{% endif %}>Planlandı</option>
+<option value="Yüklemede" {% if durum == "Yüklemede" %}selected{% endif %}>Yüklemede</option>
+<option value="Yüklendi" {% if durum == "Yüklendi" %}selected{% endif %}>Yüklendi</option>
+<option value="Yolda" {% if durum == "Yolda" %}selected{% endif %}>Yolda</option>
+<option value="Limanda" {% if durum == "Limanda" %}selected{% endif %}>Limanda</option>
+<option value="Boşaltmada" {% if durum == "Boşaltmada" %}selected{% endif %}>Boşaltmada</option>
+<option value="Tamamlandı" {% if durum == "Tamamlandı" %}selected{% endif %}>Tamamlandı</option>
+<option value="İptal" {% if durum == "İptal" %}selected{% endif %}>İptal</option>
+</select>
+</div>
+<br>
+<button type="submit">Filtrele</button>
+</form>
+</div>
+
+<div class="table-box">
+<table>
+
+<thead>
+<tr>
+<th>Sıra</th>
+<th>İş Kodu</th>
+<th>Müşteri</th>
+<th>İşin Adı</th>
+<th>1. Plaka</th>
+<th>2. Plaka</th>
+<th>Hat</th>
+<th>Güncel Konum</th>
+<th>Yükleme Tarihi</th>
+<th>Maliyet</th>
+<th>Satış</th>
+<th>Kâr</th>
+<th>Süre</th>
+<th>Risk</th>
+<th>İşlem</th>
+</tr>
+</thead>
+
+<tbody>
+{% for i in isler %}
+{% if i.durum != "Tamamlandı" %}
+<tr class="{% if i.risk_durumu_goster == 'RISKLI' %}row-risk{% elif i.eksik_evrak_sayisi > 0 %}row-warning{% endif %}">
+
+<td>{{ i.sira_no }}</td>
+<td><b>{{ i.is_kodu }}</b></td>
+<td>{{ i.musteri_adi }}</td>
+<td>{{ i.isin_adi }}</td>
+<td>{{ i.plaka }}</td>
+
+<td>
+{% if i.ikinci_plaka %}
+{{ i.ikinci_plaka }}
+{% else %}
+-
+{% endif %}
+</td>
+
+<td>{{ i.hat }}</td>
+<td>{{ i.guncel_konum }}</td>
+
+<td>
+{% if i.gerceklesen_yukleme_zamani %}
+{{ i.gerceklesen_yukleme_zamani|date:"d.m.Y H:i" }}
+{% elif i.planlanan_yukleme_zamani %}
+{{ i.planlanan_yukleme_zamani|date:"d.m.Y H:i" }}
+{% else %}
+-
+{% endif %}
+</td>
+
+<td class="red">
+{{ i.toplam_maliyet|floatformat:2 }} {{ i.para_birimi }}
+</td>
+
+<td class="green">
+{{ i.toplam_satis|floatformat:2 }} {{ i.para_birimi }}
+</td>
+
+<td class="kar">
+{% if i.net_kar > 0 %}
+<span class="kar-plus">{{ i.net_kar|floatformat:2 }} {{ i.para_birimi }}</span>
+{% else %}
+<span class="kar-minus">{{ i.net_kar|floatformat:2 }} {{ i.para_birimi }}</span>
+{% endif %}
+</td>
+
+<td>{{ i.toplam_tasima_gunu }} Gün</td>
+
+<td>
+{% if i.risk_durumu_goster == "RISKLI" %}
+<span class="risk">RİSKLİ</span>
+
+{% elif i.risk_durumu_goster == "DIKKAT" %}
+<span class="warning">DİKKAT</span>
+
+{% elif i.risk_notu or i.nakliyeci_notu or i.sofor_notu %}
+<span class="warning">NOT VAR</span>
+
+{% else %}
+-
+{% endif %}
+</td>
+
+<td>
+<div class="links">
+<a class="show" href="{% url 'is_goster' i.id %}">Göster</a>
+<a class="edit" href="{% url 'is_duzenle' i.id %}">Düzenle</a>
+<a class="copy" href="{% url 'is_kopyala' i.id %}">Kopyala</a>
+<a class="delete" onclick="return confirm('Bu işi silmek istediğine emin misin?')" href="{% url 'is_sil' i.id %}">Sil</a>
+</div>
+</td>
+
+</tr>
+{% endif %}
+{% empty %}
+<tr>
+<td colspan="14">Kayıt bulunamadı.</td>
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+</div>
+
+</div>
+
+</body>
+</html>

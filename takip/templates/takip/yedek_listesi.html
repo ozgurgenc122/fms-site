@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>FMS Yedekler</title>
+<style>
+body{margin:0;font-family:Arial;background:#f4f6f8;font-size:14px;}
+.topbar{background:#0b6b53;color:white;padding:15px;}
+.wrap{padding:15px;}
+.box{background:white;padding:15px;border-radius:10px;margin-bottom:20px;box-shadow:0 1px 5px rgba(0,0,0,0.1);}
+a,button{background:#0b6b53;color:white;padding:9px 12px;border:0;border-radius:6px;text-decoration:none;cursor:pointer;font-size:13px;}
+.danger{background:#c62828;}
+.warn{background:#ef6c00;}
+table{width:100%;border-collapse:collapse;background:white;}
+th{background:#0b6b53;color:white;text-align:left;padding:10px;}
+td{padding:10px;border-bottom:1px solid #eee;}
+.actions{display:flex;gap:6px;flex-wrap:wrap;}
+.success{color:#0b8f45;font-weight:bold;}
+.error{color:#c62828;font-weight:bold;}
+</style>
+</head>
+<body>
+<div class="topbar"><h1>FMS Yedek Yönetimi</h1></div>
+<div class="wrap">
+
+<div class="box">
+<a href="{% url 'ana_sayfa' %}">← Ana Sayfa</a>
+<a href="{% url 'yedek_al' %}">Yeni Yedek Al</a>
+</div>
+
+{% if messages %}
+<div class="box">
+{% for message in messages %}
+<div class="{{ message.tags }}">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="box">
+<h3>Dışarıdan ZIP Yedek Yükle</h3>
+<form method="POST" enctype="multipart/form-data" action="{% url 'yedek_geri_yukle_yukle' %}" onsubmit="return confirm('Seçtiğiniz yedek geri yüklenecek. Mevcut veriler değişir. Devam edilsin mi?')">
+{% csrf_token %}
+<input type="file" name="yedek_dosyasi" accept=".zip" required>
+<button type="submit" class="warn">ZIP Yedeği Geri Yükle</button>
+</form>
+</div>
+
+<div class="box">
+<h3>Kayıtlı Yedekler</h3>
+<table>
+<thead>
+<tr>
+<th>Yedek Dosyası</th>
+<th>Tarih</th>
+<th>Boyut</th>
+<th>İşlem</th>
+</tr>
+</thead>
+<tbody>
+{% for yedek in yedekler %}
+<tr>
+<td>{{ yedek.ad }}</td>
+<td>{{ yedek.tarih|date:"d.m.Y H:i:s" }}</td>
+<td>{{ yedek.boyut_mb }} MB</td>
+<td>
+<div class="actions">
+<a href="{% url 'yedek_indir' yedek.ad %}">İndir</a>
+<form method="POST" action="{% url 'yedek_geri_yukle' yedek.ad %}" onsubmit="return confirm('Bu yedek geri yüklenecek. Mevcut verilerin üzerine yazılır. Devam edilsin mi?')">
+{% csrf_token %}
+<button type="submit" class="warn">Geri Yükle</button>
+</form>
+<form method="POST" action="{% url 'yedek_sil' yedek.ad %}" onsubmit="return confirm('Bu yedek silinsin mi?')">
+{% csrf_token %}
+<button type="submit" class="danger">Sil</button>
+</form>
+</div>
+</td>
+</tr>
+{% empty %}
+<tr><td colspan="4">Henüz yedek yok.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+</div>
+</body>
+</html>

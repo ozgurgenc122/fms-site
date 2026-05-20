@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Cari Listesi</title>
+
+<style>
+body{font-family:Arial;background:#f4f6f8;margin:0;font-size:13px;}
+.top{background:#0b6b53;color:white;padding:15px;font-size:20px;font-weight:bold;}
+.wrap{padding:15px;}
+.btn{background:#0b6b53;color:white;padding:8px 12px;border-radius:5px;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:15px;}
+.table-box{background:white;padding:12px;border-radius:8px;box-shadow:0 1px 5px #ddd;overflow:auto;}
+table{width:100%;border-collapse:collapse;min-width:1200px;}
+th{background:#0b6b53;color:white;padding:10px;text-align:left;}
+td{padding:8px;border-bottom:1px solid #ddd;}
+tr:hover{background:#f2f2f2;}
+.green{color:#0b8f45;font-weight:bold;}
+.red{color:#c62828;font-weight:bold;}
+.blue{color:#1565c0;font-weight:bold;}
+</style>
+</head>
+
+<body>
+
+<div class="top">Müşteri Cari Listesi</div>
+
+<div class="wrap">
+
+<a class="btn" href="{% url 'ana_sayfa' %}">← Ana Sayfaya Dön</a>
+
+<div class="table-box">
+<table>
+<thead>
+<tr>
+<th>Müşteri</th>
+<th>İş Sayısı</th>
+<th>EUR Satış</th>
+<th>EUR Maliyet</th>
+<th>EUR Kâr</th>
+<th>USD Satış</th>
+<th>USD Maliyet</th>
+<th>USD Kâr</th>
+<th>TRY Satış</th>
+<th>TRY Maliyet</th>
+<th>TRY Kâr</th>
+</tr>
+</thead>
+
+<tbody>
+{% for musteri, v in musteriler.items %}
+<tr>
+<td class="blue">{{ musteri }}</td>
+<td>{{ v.is_sayisi }}</td>
+
+<td class="green">{{ v.EUR.satis|floatformat:2 }} EUR</td>
+<td class="red">{{ v.EUR.maliyet|floatformat:2 }} EUR</td>
+<td class="{% if v.EUR.kar >= 0 %}green{% else %}red{% endif %}">
+{{ v.EUR.kar|floatformat:2 }} EUR
+</td>
+
+<td class="green">{{ v.USD.satis|floatformat:2 }} USD</td>
+<td class="red">{{ v.USD.maliyet|floatformat:2 }} USD</td>
+<td class="{% if v.USD.kar >= 0 %}green{% else %}red{% endif %}">
+{{ v.USD.kar|floatformat:2 }} USD
+</td>
+
+<td class="green">{{ v.TRY.satis|floatformat:2 }} TRY</td>
+<td class="red">{{ v.TRY.maliyet|floatformat:2 }} TRY</td>
+<td class="{% if v.TRY.kar >= 0 %}green{% else %}red{% endif %}">
+{{ v.TRY.kar|floatformat:2 }} TRY
+</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="11">Cari kaydı bulunamadı.</td>
+</tr>
+{% endfor %}
+</tbody>
+
+</table>
+</div>
+
+</div>
+
+</body>
+</html>

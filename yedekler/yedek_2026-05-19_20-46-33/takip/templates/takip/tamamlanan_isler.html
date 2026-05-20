@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Tamamlanan İşler</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#f4f6f8;
+    margin:0;
+    font-size:13px;
+}
+
+.top{
+    background:#0b6b53;
+    color:white;
+    padding:15px;
+    font-size:20px;
+    font-weight:bold;
+}
+
+.wrap{
+    padding:15px;
+}
+
+.summary-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.card{
+    background:white;
+    padding:15px;
+    border-radius:8px;
+    box-shadow:0 1px 5px #ddd;
+}
+
+.card-title{
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+.table-box{
+    background:white;
+    padding:12px;
+    border-radius:8px;
+    box-shadow:0 1px 5px #ddd;
+    overflow:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:1100px;
+}
+
+th{
+    background:#0b6b53;
+    color:white;
+    padding:10px;
+    text-align:left;
+}
+
+td{
+    padding:8px;
+    border-bottom:1px solid #ddd;
+}
+
+tr:hover{
+    background:#f2f2f2;
+}
+
+.btn{
+    background:#0b6b53;
+    color:white;
+    padding:8px 12px;
+    border-radius:5px;
+    display:inline-block;
+    margin-bottom:15px;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.links{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+}
+
+.links a{
+    text-decoration:none;
+    padding:6px 10px;
+    border-radius:5px;
+    color:white;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.show{background:#2e7d32;}
+.edit{background:#1565c0;}
+.copy{background:#ef6c00;}
+.delete{background:#c62828;}
+
+.green{
+    color:#0b8f45;
+    font-weight:bold;
+}
+
+.red{
+    color:#c62828;
+    font-weight:bold;
+}
+
+.big{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.blue{
+    color:#1565c0;
+}
+
+@media(max-width:900px){
+    .summary-grid{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="top">
+Tamamlanan İşler
+</div>
+
+<div class="wrap">
+
+<a class="btn" href="{% url 'ana_sayfa' %}">
+← Ana Sayfaya Dön
+</a>
+
+<div class="summary-grid">
+
+<div class="card">
+<div class="card-title">EUR Toplam Kâr/Zarar</div>
+
+<div class="red">
+Maliyet:
+{{ toplamlar.EUR.maliyet|floatformat:2 }} EUR
+</div>
+
+<br>
+
+<div class="green">
+Satış:
+{{ toplamlar.EUR.satis|floatformat:2 }} EUR
+</div>
+
+<br>
+
+{% if toplamlar.EUR.kar >= 0 %}
+<div class="green big">
+{{ toplamlar.EUR.kar|floatformat:2 }} EUR
+</div>
+{% else %}
+<div class="red big">
+{{ toplamlar.EUR.kar|floatformat:2 }} EUR
+</div>
+{% endif %}
+</div>
+
+
+<div class="card">
+<div class="card-title">USD Toplam Kâr/Zarar</div>
+
+<div class="red">
+Maliyet:
+{{ toplamlar.USD.maliyet|floatformat:2 }} USD
+</div>
+
+<br>
+
+<div class="green">
+Satış:
+{{ toplamlar.USD.satis|floatformat:2 }} USD
+</div>
+
+<br>
+
+{% if toplamlar.USD.kar >= 0 %}
+<div class="green big">
+{{ toplamlar.USD.kar|floatformat:2 }} USD
+</div>
+{% else %}
+<div class="red big">
+{{ toplamlar.USD.kar|floatformat:2 }} USD
+</div>
+{% endif %}
+</div>
+
+
+<div class="card">
+<div class="card-title">TRY Toplam Kâr/Zarar</div>
+
+<div class="red">
+Maliyet:
+{{ toplamlar.TRY.maliyet|floatformat:2 }} TRY
+</div>
+
+<br>
+
+<div class="green">
+Satış:
+{{ toplamlar.TRY.satis|floatformat:2 }} TRY
+</div>
+
+<br>
+
+{% if toplamlar.TRY.kar >= 0 %}
+<div class="green big">
+{{ toplamlar.TRY.kar|floatformat:2 }} TRY
+</div>
+{% else %}
+<div class="red big">
+{{ toplamlar.TRY.kar|floatformat:2 }} TRY
+</div>
+{% endif %}
+</div>
+
+
+<div class="card">
+<div class="card-title">Toplam Tamamlanan İş</div>
+
+<div class="big blue">
+{{ isler.count }}
+</div>
+</div>
+
+</div>
+
+<div class="table-box">
+
+<table>
+
+<thead>
+<tr>
+<th>Sıra</th>
+<th>Müşteri</th>
+<th>İş Adı</th>
+<th>1. Plaka</th>
+<th>2. Plaka</th>
+<th>Hat</th>
+<th>Yükleme</th>
+<th>Boşaltma</th>
+<th>Süre</th>
+<th>Maliyet</th>
+<th>Satış</th>
+<th>Kâr/Zarar</th>
+<th>İşlem</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for is in isler %}
+<tr>
+
+<td>{{ is.sira_no }}</td>
+
+<td>{{ is.musteri_adi }}</td>
+
+<td>{{ is.isin_adi }}</td>
+
+<td>{{ is.plaka }}</td>
+
+<td>
+{% if is.ikinci_plaka %}
+{{ is.ikinci_plaka }}
+{% else %}
+-
+{% endif %}
+</td>
+
+<td>{{ is.hat }}</td>
+
+<td>
+{% if is.gerceklesen_yukleme_zamani %}
+{{ is.gerceklesen_yukleme_zamani|date:"d.m.Y H:i" }}
+{% elif is.planlanan_yukleme_zamani %}
+{{ is.planlanan_yukleme_zamani|date:"d.m.Y H:i" }}
+{% else %}
+-
+{% endif %}
+</td>
+
+<td>{{ is.bosaltma_zamani|date:"d.m.Y H:i" }}</td>
+
+<td>
+{{ is.toplam_tasima_gunu }} Gün
+</td>
+
+<td class="red">
+{{ is.toplam_maliyet|floatformat:2 }}
+{{ is.para_birimi }}
+</td>
+
+<td class="green">
+{{ is.toplam_satis|floatformat:2 }}
+{{ is.para_birimi }}
+</td>
+
+<td>
+{% if is.net_kar > 0 %}
+<span class="green">
+{{ is.net_kar|floatformat:2 }}
+{{ is.para_birimi }}
+</span>
+{% else %}
+<span class="red">
+{{ is.net_kar|floatformat:2 }}
+{{ is.para_birimi }}
+</span>
+{% endif %}
+</td>
+
+<td>
+<div class="links">
+
+<a class="show"
+href="{% url 'is_goster' is.id %}">
+Göster
+</a>
+
+<a class="edit"
+href="{% url 'is_duzenle' is.id %}">
+Düzenle
+</a>
+
+<a class="copy"
+href="{% url 'is_kopyala' is.id %}">
+Kopyala
+</a>
+
+<a class="delete"
+onclick="return confirm('Bu tamamlanan işi silmek istediğine emin misin?')"
+href="{% url 'is_sil' is.id %}">
+Sil
+</a>
+
+</div>
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="12">
+Tamamlanan iş bulunamadı.
+</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</body>
+</html>

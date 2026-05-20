@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Yeni İş</title>
+
+<style>
+body { font-family: Arial; background:#f5f7f6; margin:0; font-size:13px; }
+.top { background:#0b6b53; color:white; padding:15px; font-weight:bold; }
+.wrap { padding:15px; }
+.box { background:white; padding:15px; margin-bottom:15px; border-radius:8px; box-shadow:0 1px 5px #ddd; }
+.grid { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; }
+input, select, textarea { width:100%; padding:7px; box-sizing:border-box; }
+label { font-weight:bold; font-size:12px; display:block; margin-bottom:3px; }
+h3 { margin-top:0; color:#0b6b53; }
+button { background:#0b6b53; color:white; padding:12px 20px; border:0; border-radius:6px; font-weight:bold; cursor:pointer; }
+a { color:#0b6b53; }
+.hidden { display:none; }
+.result { background:#e8f5ef; padding:8px; border-radius:6px; font-weight:bold; color:#0b6b53; }
+.quick { background:#fff8e1; border-left:5px solid #f9a825; }
+summary { font-size:16px; font-weight:bold; color:#0b6b53; cursor:pointer; margin-bottom:10px; }
+details { background:white; padding:15px; margin-bottom:15px; border-radius:8px; box-shadow:0 1px 5px #ddd; }
+</style>
+
+<script>
+function ucretRakam(secim, digerId) {
+    if (secim === "Diğer") {
+        var d = parseFloat(document.getElementById(digerId).value || 0);
+        return isNaN(d) ? 0 : d;
+    }
+    var n = parseFloat(secim);
+    return isNaN(n) ? 0 : n;
+}
+
+function gunHesapla(baslangicId, bitisId, freeId) {
+    var b = document.getElementById(baslangicId).value;
+    var e = document.getElementById(bitisId).value;
+    var free = parseFloat(document.getElementById(freeId).value || 0);
+    if (!b || !e) return 0;
+    var bas = new Date(b);
+    var bit = new Date(e);
+    var farkSaat = (bit - bas) / 1000 / 60 / 60;
+    if (farkSaat <= free) return 0;
+    return Math.ceil((farkSaat - free) / 24);
+}
+
+function beklemeHesapla(prefix) {
+    var gun = 0;
+    var tutar = 0;
+
+    if (prefix === "yukleme") {
+        gun = gunHesapla("planlanan_yukleme_zamani", "gerceklesen_yukleme_zamani", "yukleme_ucretsiz_saat");
+        tutar = gun * ucretRakam(document.getElementById("yukleme_bekleme_ucreti").value, "yukleme_bekleme_diger_tutar");
+    }
+
+    if (prefix === "bosaltma") {
+        gun = gunHesapla("bosaltma_evrak_teslim_zamani", "bosaltma_zamani", "bosaltma_ucretsiz_saat");
+        tutar = gun * ucretRakam(document.getElementById("bosaltma_bekleme_ucreti").value, "bosaltma_bekleme_diger_tutar");
+    }
+
+    if (prefix === "ikinci_yukleme") {
+        gun = gunHesapla("ikinci_planlanan_yukleme_zamani", "ikinci_gerceklesen_yukleme_zamani", "ikinci_yukleme_ucretsiz_saat");
+        tutar = gun * ucretRakam(document.getElementById("ikinci_yukleme_bekleme_ucreti").value, "ikinci_yukleme_bekleme_diger_tutar");
+    }
+
+    if (prefix === "ikinci_bosaltma") {
+        gun = gunHesapla("ikinci_bosaltma_evrak_teslim_zamani", "ikinci_bosaltma_zamani", "ikinci_bosaltma_ucretsiz_saat");
+        tutar = gun * ucretRakam(document.getElementById("ikinci_bosaltma_bekleme_ucreti").value, "ikinci_bosaltma_bekleme_diger_tutar");
+    }
+
+    if (prefix === "liman") {
+        gun = gunHesapla("gemi_yanasma_tarihi", "limandan_cikis_tarihi", "liman_ucretsiz_saat");
+        tutar = gun * ucretRakam(document.getElementById("liman_bekleme_ucreti").value, "liman_bekleme_diger_tutar");
+    }
+
+    var hedef = document.getElementById(prefix + "_sonuc");
+    if (hedef) hedef.innerHTML = gun + " gün / " + tutar.toFixed(2);
+}
+
+function tumBeklemeleriHesapla() {
+    beklemeHesapla("yukleme");
+    beklemeHesapla("bosaltma");
+    beklemeHesapla("ikinci_yukleme");
+    beklemeHesapla("ikinci_bosaltma");
+    beklemeHesapla("liman");
+}
+
+function ikinciTasimaKontrol() {
+    var secim = document.getElementById("ikinci_tasima_var_mi").value;
+    var alan = document.getElementById("ikinci_tasima_alani");
+    if (secim === "Evet") { alan.classList.remove("hidden"); }
+    else { alan.classList.add("hidden"); }
+}
+
+function teminatKontrol() {
+    var secim = document.getElementById("teminat_satisa_dahil_mi").value;
+    var alan = document.getElementById("teminat_ayri_fatura_alani");
+    if (secim === "Hayır") { alan.classList.remove("hidden"); }
+    else { alan.classList.add("hidden"); }
+}
+
+window.onload = function() {
+    ikinciTasimaKontrol();
+    teminatKontrol();
+    tumBeklemeleriHesapla();
+}
+</script>
+</head>
+
+<body>
+
+<div class="top">Yeni İş Ekle</div>
+
+<div class="wrap">
+<form method="POST" enctype="multipart/form-data">
+{% csrf_token %}
+
+<input type="hidden" name="kontrol" value="1">
+
+{% if uyarilar %}
+<div style="background:#ffe5e5; border:2px solid #c62828; color:#8b0000; padding:15px; margin-bottom:15px; border-radius:8px; font-weight:bold;">
+    <h3>⚠️ Risk / Geçmiş Not Uyarısı</h3>
+    {% for u in uyarilar %}
+        <div style="margin-bottom:8px;">{{ u }}</div>
+    {% endfor %}
+    <p>Bu uyarılara rağmen kaydetmek istiyorsan tekrar Kaydet butonuna bas.</p>
+    <input type="hidden" name="kontrol" value="0">
+</div>
+{% endif %}
+
+<div class="box quick">
+<h3>Hızlı İş Girişi</h3>
+<div class="grid">
+
+<div><label>Müşteri Adı</label><input name="musteri_adi" value="{{ post.musteri_adi }}"></div>
+<div><label>İşin Adı</label><input name="isin_adi" value="{{ post.isin_adi }}"></div>
+<div><label>Hat / Güzergah</label><input name="hat" value="{{ post.hat }}"></div>
+
+<div>
+<label>Durum</label>
+<select name="durum">
+<option>Teklif</option>
+<option>Planlandı</option>
+<option>Yüklemede</option>
+<option>Yüklendi</option>
+<option>Yolda</option>
+<option>Limanda</option>
+<option>Boşaltmada</option>
+<option>Tamamlandı</option>
+<option>İptal</option>
+</select>
+</div>
+
+<div>
+<label>Ödeme Durumu</label>
+<select name="odeme_durumu">
+<option>Ödenmedi</option>
+<option>Kısmi Ödeme</option>
+<option>Ödendi</option>
+</select>
+</div>
+
+<div>
+<label>Para Birimi</label>
+<select name="para_birimi">
+<option>EUR</option>
+<option>USD</option>
+<option>TRY</option>
+</select>
+</div>
+
+<div>
+<label>Araç Tipi</label>
+<select name="arac_tipi">
+<option value="">Araç Tipi Seç</option>
+<option>Tenteli</option><option>Mega</option><option>Sal Kasa</option><option>Lowbed</option>
+<option>Frigo</option><option>Minivan</option><option>Lorry</option><option>Parsiyel</option>
+<option>20DC</option><option>40DC</option><option>Hava Kargo</option><option>Gemiye Dökme</option>
+</select>
+</div>
+
+<div><label>Plaka</label><input name="plaka" value="{{ post.plaka }}"></div>
+<div><label>Nakliyeci</label><input name="nakliyeci" value="{{ post.nakliyeci }}"></div>
+<div><label>Şoför Adı</label><input name="sofor_adi" value="{{ post.sofor_adi }}"></div>
+<div><label>Şoför Telefon No</label><input name="sofor_no" value="{{ post.sofor_no }}"></div>
+<div><label>Güncel Konum</label><input name="guncel_konum" value="{{ post.guncel_konum }}"></div>
+
+<div><label>Yükleme Konumu / Adresi</label><input name="yukleme_konum" value="{{ post.yukleme_konum }}"></div>
+<div><label>Boşaltma Konumu / Adresi</label><input name="bosaltma_konum" value="{{ post.bosaltma_konum }}"></div>
+<div><label>Planlanan Yükleme</label><input type="datetime-local" id="planlanan_yukleme_zamani" name="planlanan_yukleme_zamani" onchange="tumBeklemeleriHesapla()"></div>
+
+<div><label>Gerçekleşen Yükleme</label><input type="datetime-local" id="gerceklesen_yukleme_zamani" name="gerceklesen_yukleme_zamani" onchange="tumBeklemeleriHesapla()"></div>
+<div><label>Boşaltma Evrak Teslim</label><input type="datetime-local" id="bosaltma_evrak_teslim_zamani" name="bosaltma_evrak_teslim_zamani" onchange="tumBeklemeleriHesapla()"></div>
+<div><label>Boşaltma Tarihi</label><input type="datetime-local" id="bosaltma_zamani" name="bosaltma_zamani" onchange="tumBeklemeleriHesapla()"></div>
+
+</div>
+</div>
+
+<details open>
+<summary>1. Taşıma Finans / Bekleme</summary>
+<div class="grid">
+
+<div>
+<label>Yükleme Free Time</label>
+<select id="yukleme_ucretsiz_saat" name="yukleme_ucretsiz_saat" onchange="tumBeklemeleriHesapla()">
+<option value="24">24 Saat Ücretsiz</option>
+<option value="48">48 Saat Ücretsiz</option>
+<option value="72">72 Saat Ücretsiz</option>
+</select>
+</div>
+
+<div>
+<label>Yükleme Günlük Bekleme Tutarı</label>
+<select id="yukleme_bekleme_ucreti" name="yukleme_bekleme_ucreti" onchange="tumBeklemeleriHesapla()">
+<option>100 USD</option><option>150 USD</option><option>200 USD</option><option>250 USD</option><option>300 USD</option>
+<option>100 EUR</option><option>150 EUR</option><option>200 EUR</option><option>250 EUR</option><option>300 EUR</option>
+<option>Diğer</option>
+</select>
+</div>
+
+<div>
+<label>Yükleme Bekleme Diğer Tutar</label>
+<input type="number" step="0.01" id="yukleme_bekleme_diger_tutar" name="yukleme_bekleme_diger_tutar" oninput="tumBeklemeleriHesapla()">
+</div>
+
+<div class="result">
+<label>Otomatik Yükleme Bekleme</label>
+<span id="yukleme_sonuc">0 gün / 0.00</span>
+</div>
+
+<div>
+<label>Boşaltma Free Time</label>
+<select id="bosaltma_ucretsiz_saat" name="bosaltma_ucretsiz_saat" onchange="tumBeklemeleriHesapla()">
+<option value="24">24 Saat Ücretsiz</option>
+<option value="48">48 Saat Ücretsiz</option>
+<option value="72">72 Saat Ücretsiz</option>
+</select>
+</div>
+
+<div>
+<label>Boşaltma Günlük Bekleme Tutarı</label>
+<select id="bosaltma_bekleme_ucreti" name="bosaltma_bekleme_ucreti" onchange="tumBeklemeleriHesapla()">
+<option>100 USD</option><option>150 USD</option><option>200 USD</option><option>250 USD</option><option>300 USD</option>
+<option>100 EUR</option><option>150 EUR</option><option>200 EUR</option><option>250 EUR</option><option>300 EUR</option>
+<option>Diğer</option>
+</select>
+</div>
+
+<div>
+<label>Boşaltma Bekleme Diğer Tutar</label>
+<input type="number" step="0.01" id="bosaltma_bekleme_diger_tutar" name="bosaltma_bekleme_diger_tutar" oninput="tumBeklemeleriHesapla()">
+</div>
+
+<div class="result">
+<label>Otomatik Boşaltma Bekleme</label>
+<span id="bosaltma_sonuc">0 gün / 0.00</span>
+</div>
+
+<div><label>1. Taşıma Gelen Fatura No</label><input name="tasima1_gelen_fatura"></div>
+<div><label>1. Taşıma Gelen Fatura Tutarı</label><input type="number" step="0.01" name="tasima1_gelen_fatura_tutari"></div>
+<div><label>1. Taşıma Elden Verilen Avans</label><input type="number" step="0.01" name="tasima1_elden_verilen_avans"></div>
+<div><label>1. Taşıma Yapılan Ödeme</label><input type="number" step="0.01" name="tasima1_yapilan_odeme"></div>
+
+<div><label>Nakliyeci Notu</label><textarea name="nakliyeci_notu">{{ post.nakliyeci_notu }}</textarea></div>
+<div><label>Şoför Notu</label><textarea name="sofor_notu">{{ post.sofor_notu }}</textarea></div>
+
+</div>
+</details>
+
+<details>
+<summary>2. Taşıma Bilgileri</summary>
+<div class="grid">
+
+<div>
+<label>2. Taşıma Var mı?</label>
+<select name="ikinci_tasima_var_mi" id="ikinci_tasima_var_mi" onchange="ikinciTasimaKontrol()">
+<option>Hayır</option>
+<option>Evet</option>
+</select>
+</div>
+
+</div>
+
+<div id="ikinci_tasima_alani" class="hidden">
+<div class="grid">
+
+<div>
+<label>2. Araç Tipi</label>
+<select name="ikinci_arac_tipi">
+<option value="">2. Araç Tipi Seç</option>
+<option>Tenteli</option><option>Mega</option><option>Sal Kasa</option><option>Lowbed</option><option>Frigo</option>
+<option>Minivan</option><option>Lorry</option><option>Parsiyel</option><option>20DC</option><option>40DC</option>
+<option>Hava Kargo</option><option>Gemiye Dökme</option>
+</select>
+</div>
+
+<div><label>2. Plaka</label><input name="ikinci_plaka"></div>
+<div><label>2. Şoför Adı</label><input name="ikinci_sofor_adi"></div>
+<div><label>2. Şoför Telefon No</label><input name="ikinci_sofor_no"></div>
+<div><label>2. Nakliyeci</label><input name="ikinci_nakliyeci"></div>
+<div><label>2. Güncel Konum</label><input name="ikinci_guncel_konum"></div>
+
+<div><label>2. Planlanan Yükleme</label><input type="datetime-local" id="ikinci_planlanan_yukleme_zamani" name="ikinci_planlanan_yukleme_zamani" onchange="tumBeklemeleriHesapla()"></div>
+<div><label>2. Gerçekleşen Yükleme</label><input type="datetime-local" id="ikinci_gerceklesen_yukleme_zamani" name="ikinci_gerceklesen_yukleme_zamani" onchange="tumBeklemeleriHesapla()"></div>
+
+<div>
+<label>2. Yükleme Free Time</label>
+<select id="ikinci_yukleme_ucretsiz_saat" name="ikinci_yukleme_ucretsiz_saat" onchange="tumBeklemeleriHesapla()">
+<option value="24">24 Saat Ücretsiz</option>
+<option value="48">48 Saat Ücretsiz</option>
+<option value="72">72 Saat Ücretsiz</option>
+</select>
+</div>
+
+<div>
+<label>2. Yükleme Günlük Bekleme Tutarı</label>
+<select id="ikinci_yukleme_bekleme_ucreti" name="ikinci_yukleme_bekleme_ucreti" onchange="tumBeklemeleriHesapla()">
+<option>100 USD</option><option>150 USD</option><option>200 USD</option><option>250 USD</option><option>300 USD</option>
+<option>100 EUR</option><option>150 EUR</option><option>200 EUR</option><option>250 EUR</option><option>300 EUR</option>
+<option>Diğer</option>
+</select>
+</div>
+
+<div><label>2. Yükleme Bekleme Diğer Tutar</label><input type="number" step="0.01" id="ikinci_yukleme_bekleme_diger_tutar" name="ikinci_yukleme_bekleme_diger_tutar" oninput="tumBeklemeleriHesapla()"></div>
+
+<div class="result"><label>Otomatik 2. Yükleme Bekleme</label><span id="ikinci_yukleme_sonuc">0 gün / 0.00</span></div>
+
+<div><label>2. Yükleme Konumu</label><input name="ikinci_yukleme_konum"></div>
+<div><label>2. Boşaltma Konumu</label><input name="ikinci_bosaltma_konum"></div>
+<div><label>2. Boşaltma Evrak Teslim</label><input type="datetime-local" id="ikinci_bosaltma_evrak_teslim_zamani" name="ikinci_bosaltma_evrak_teslim_zamani" onchange="tumBeklemeleriHesapla()"></div>
+<div><label>2. Boşaltma Tarihi</label><input type="datetime-local" id="ikinci_bosaltma_zamani" name="ikinci_bosaltma_zamani" onchange="tumBeklemeleriHesapla()"></div>
+
+<div>
+<label>2. Boşaltma Free Time</label>
+<select id="ikinci_bosaltma_ucretsiz_saat" name="ikinci_bosaltma_ucretsiz_saat" onchange="tumBeklemeleriHesapla()">
+<option value="24">24 Saat Ücretsiz</option>
+<option value="48">48 Saat Ücretsiz</option>
+<option value="72">72 Saat Ücretsiz</option>
+</select>
+</div>
+
+<div>
+<label>2. Boşaltma Günlük Bekleme Tutarı</label>
+<select id="ikinci_bosaltma_bekleme_ucreti" name="ikinci_bosaltma_bekleme_ucreti" onchange="tumBeklemeleriHesapla()">
+<option>100 USD</option><option>150 USD</option><option>200 USD</option><option>250 USD</option><option>300 USD</option>
+<option>100 EUR</option><option>150 EUR</option><option>200 EUR</option><option>250 EUR</option><option>300 EUR</option>
+<option>Diğer</option>
+</select>
+</div>
+
+<div><label>2. Boşaltma Bekleme Diğer Tutar</label><input type="number" step="0.01" id="ikinci_bosaltma_bekleme_diger_tutar" name="ikinci_bosaltma_bekleme_diger_tutar" oninput="tumBeklemeleriHesapla()"></div>
+
+<div class="result"><label>Otomatik 2. Boşaltma Bekleme</label><span id="ikinci_bosaltma_sonuc">0 gün / 0.00</span></div>
+
+<div><label>2. Taşıma Gelen Fatura No</label><input name="tasima2_gelen_fatura"></div>
+<div><label>2. Taşıma Gelen Fatura Tutarı</label><input type="number" step="0.01" name="tasima2_gelen_fatura_tutari"></div>
+<div><label>2. Taşıma Elden Verilen Avans</label><input type="number" step="0.01" name="tasima2_elden_verilen_avans"></div>
+<div><label>2. Taşıma Yapılan Ödeme</label><input type="number" step="0.01" name="tasima2_yapilan_odeme"></div>
+
+</div>
+</div>
+</details>
+
+<details>
+<summary>Gemi / Liman</summary>
+<div class="grid">
+<div><label>Gemi Adı</label><input name="gemi_adi"></div>
+<div><label>Gemi Kalkış Tarihi</label><input type="datetime-local" name="gemi_kalkis_tarihi"></div>
+<div><label>Gemi Yanaşma Tarihi</label><input type="datetime-local" id="gemi_yanasma_tarihi" name="gemi_yanasma_tarihi" onchange="tumBeklemeleriHesapla()"></div>
+<div><label>Limandan Çıkış Tarihi</label><input type="datetime-local" id="limandan_cikis_tarihi" name="limandan_cikis_tarihi" onchange="tumBeklemeleriHesapla()"></div>
+
+<div>
+<label>Liman Free Time</label>
+<select id="liman_ucretsiz_saat" name="liman_ucretsiz_saat" onchange="tumBeklemeleriHesapla()">
+<option value="24">24 Saat Ücretsiz</option>
+<option value="48">48 Saat Ücretsiz</option>
+<option value="72">72 Saat Ücretsiz</option>
+</select>
+</div>
+
+<div>
+<label>Liman Günlük Bekleme Tutarı</label>
+<select id="liman_bekleme_ucreti" name="liman_bekleme_ucreti" onchange="tumBeklemeleriHesapla()">
+<option>100 USD</option><option>150 USD</option><option>200 USD</option><option>250 USD</option><option>300 USD</option>
+<option>100 EUR</option><option>150 EUR</option><option>200 EUR</option><option>250 EUR</option><option>300 EUR</option>
+<option>Diğer</option>
+</select>
+</div>
+
+<div><label>Liman Bekleme Diğer Tutar</label><input type="number" step="0.01" id="liman_bekleme_diger_tutar" name="liman_bekleme_diger_tutar" oninput="tumBeklemeleriHesapla()"></div>
+<div class="result"><label>Otomatik Liman Bekleme</label><span id="liman_sonuc">0 gün / 0.00</span></div>
+</div>
+</details>
+
+<details>
+<summary>Masraflar / Fatura / Teminat</summary>
+<div class="grid">
+
+<div><label>Elektronka Bedeli</label><input type="number" step="0.01" name="elektronka_bedeli"></div>
+<div><label>Liman Masrafı</label><input type="number" step="0.01" name="liman_masrafi"></div>
+<div><label>Aktarma Masrafı</label><input type="number" step="0.01" name="aktarma_masrafi"></div>
+<div><label>Dozvola Masrafı</label><input type="number" step="0.01" name="dozvola_masrafi"></div>
+
+<div><label>Gelen Fatura Numarası</label><input name="gelen_fatura_numarasi"></div>
+<div><label>Gelen Fatura Tutarı</label><input type="number" step="0.01" name="gelen_fatura_tutari"></div>
+
+<div><label>Eşya Cinsi</label><input name="esya_cinsi"></div>
+<div><label>Kap</label><input name="kap"></div>
+<div><label>Kg</label><input name="kg"></div>
+<div><label>GTİP</label><input name="gtip"></div>
+
+<div><label>Minimum Derece</label><input type="number" step="0.01" name="derece_min"></div>
+<div><label>Maksimum Derece</label><input type="number" step="0.01" name="derece_max"></div>
+
+<div><label>Fatura Tutarı</label><input type="number" step="0.01" name="fatura_tutari"></div>
+<div><label>Hesaplanan Teminat</label><input type="number" step="0.01" name="hesaplanan_teminat"></div>
+<div><label>Fatura Edilecek Teminat Tutarı</label><input type="number" step="0.01" name="fatura_edilecek_teminat_tutari"></div>
+
+<div>
+<label>Teminat Satış Faturasına Dahil mi?</label>
+<select name="teminat_satisa_dahil_mi" id="teminat_satisa_dahil_mi" onchange="teminatKontrol()">
+<option>Evet</option>
+<option>Hayır</option>
+</select>
+</div>
+
+<div id="teminat_ayri_fatura_alani" class="hidden">
+<label>Teminat Ayrı Fatura No</label>
+<input name="teminat_ayri_fatura_no">
+</div>
+
+<div><label>Satış Faturası</label><input name="satis_faturasi"></div>
+<div><label>Satış Faturası Tutarı</label><input type="number" step="0.01" name="satis_faturasi_tutari"></div>
+<div><label>Gelen Gemi Faturası</label><input name="gelen_gemi_faturasi"></div>
+<div><label>Gemi Faturası Tutarı</label><input type="number" step="0.01" name="gemi_faturasi_tutari"></div>
+
+</div>
+</details>
+
+<details>
+<summary>Notlar / Evraklar</summary>
+<div class="grid">
+<div style="grid-column: span 3;">
+<label>İş Notu</label>
+<textarea name="notlar" rows="4">{{ post.notlar }}</textarea>
+</div>
+
+<div><label>Yükleme Evrakları</label><input type="file" name="yukleme_evraklari"></div>
+<div><label>Gümrük Evrakları</label><input type="file" name="gumruk_evraklari"></div>
+<div><label>Yurtdışı Evrakları</label><input type="file" name="yurtdisi_evraklari"></div>
+<div><label>Boşaltma Evrakları</label><input type="file" name="bosaltma_evraklari"></div>
+</div>
+</details>
+
+<button type="submit">Kaydet</button>
+<br><br>
+<a href="{% url 'ana_sayfa' %}">← Ana Sayfaya Dön</a>
+
+</form>
+</div>
+
+</body>
+</html>

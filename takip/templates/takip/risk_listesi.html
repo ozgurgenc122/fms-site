@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Risk Kayıtları</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#f5f7f6;
+    margin:0;
+}
+
+.top{
+    background:#0b6b53;
+    color:white;
+    padding:15px;
+    font-weight:bold;
+}
+
+.wrap{
+    padding:15px;
+}
+
+.box{
+    background:white;
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:8px;
+    box-shadow:0 1px 5px #ddd;
+}
+
+.btn{
+    background:#0b6b53;
+    color:white;
+    padding:8px 12px;
+    border-radius:5px;
+    text-decoration:none;
+}
+
+.red{
+    color:#b00020;
+    font-weight:bold;
+}
+
+.orange{
+    color:#ff8800;
+    font-weight:bold;
+}
+
+.green{
+    color:#198754;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top">
+Risk Kayıtları
+</div>
+
+<div class="wrap">
+
+<div class="box">
+<a class="btn" href="/risk/ekle/">+ Yeni Risk Kaydı</a>
+<a class="btn" href="/">Ana Sayfa</a>
+</div>
+
+{% for r in riskler %}
+
+<div class="box">
+
+<b>Firma:</b> {{ r.firma_adi }}<br>
+<b>Şoför:</b> {{ r.sofor_adi }}<br>
+<b>Plaka:</b> {{ r.plaka }}<br>
+
+<br>
+
+{% if r.sorun_tipi == "Hasar" or r.sorun_tipi == "Sahte Bilgi" %}
+<span class="red">
+{{ r.sorun_tipi }}
+</span>
+
+{% elif r.sorun_tipi == "Gecikme" or r.sorun_tipi == "Evrak Sorunu" %}
+<span class="orange">
+{{ r.sorun_tipi }}
+</span>
+
+{% else %}
+<span class="green">
+{{ r.sorun_tipi }}
+</span>
+{% endif %}
+
+<br><br>
+
+{{ r.aciklama }}
+
+<br><br>
+
+<a href="/risk/sil/{{ r.id }}/">Sil</a>
+
+</div>
+
+{% empty %}
+
+<div class="box">
+Henüz risk kaydı yok.
+</div>
+
+{% endfor %}
+
+</div>
+
+</body>
+</html>

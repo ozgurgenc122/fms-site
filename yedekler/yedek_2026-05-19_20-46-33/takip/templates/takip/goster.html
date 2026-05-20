@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>İş Göster</title>
+<style>
+body { font-family: Arial; background:#f5f7f6; margin:0; font-size:13px; }
+.top { background:#0b6b53; color:white; padding:15px; font-weight:bold; }
+.wrap { padding:15px; }
+.box { background:white; padding:15px; margin-bottom:15px; border-radius:8px; box-shadow:0 1px 5px #ddd; }
+.grid { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; }
+.item { background:#f8f8f8; padding:8px; border-radius:5px; }
+b { color:#0b6b53; }
+a { color:#1d70b8; font-weight:bold; }
+.missing { color:#b00020; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<div class="top">İş Detayı</div>
+
+<div class="wrap">
+
+<div class="box">
+<a href="{% url 'ana_sayfa' %}">← Ana Sayfa</a> |
+<a href="{% url 'is_duzenle' is.id %}">Düzenle</a>
+</div>
+
+<div class="box">
+<h3>Genel</h3>
+<div class="grid">
+<div class="item"><b>Sıra:</b> {{ is.sira_no }}</div>
+<div class="item"><b>Müşteri:</b> {{ is.musteri_adi }}</div>
+<div class="item"><b>İş:</b> {{ is.isin_adi }}</div>
+<div class="item"><b>Durum:</b> {{ is.durum }}</div>
+<div class="item"><b>Ödeme:</b> {{ is.odeme_durumu }}</div>
+<div class="item"><b>Para Birimi:</b> {{ is.para_birimi }}</div>
+<div class="item"><b>Hat:</b> {{ is.hat }}</div>
+<div class="item"><b>Derece:</b> {{ is.derece_min }} / {{ is.derece_max }}</div>
+{% if is.risk_sayisi > 0 %}
+<div class="item" style="color:#b00020; font-weight:bold;">
+⚠️ {{ is.risk_durumu }} - {{ is.risk_sayisi }} risk kaydı var
+</div>
+{% endif %}
+</div>
+</div>
+
+<div class="box">
+<h3>1. Taşıma</h3>
+<div class="grid">
+<div class="item"><b>Araç Tipi:</b> {{ is.arac_tipi }}</div>
+<div class="item"><b>Plaka:</b> {{ is.plaka }}</div>
+<div class="item"><b>Şoför:</b> {{ is.sofor_adi }}</div>
+<div class="item"><b>Şoför No:</b> {{ is.sofor_no }}</div>
+<div class="item"><b>1. Nakliyeci:</b> {{ is.nakliyeci }}</div>
+<div class="item"><b>1. Güncel Konum:</b> {{ is.guncel_konum }}</div>
+<div class="item"><b>Planlanan Yükleme:</b> {{ is.planlanan_yukleme_zamani }}</div>
+<div class="item"><b>Gerçekleşen Yükleme:</b> {{ is.gerceklesen_yukleme_zamani }}</div>
+<div class="item"><b>Yükleme Konum:</b> {{ is.yukleme_konum }}</div>
+<div class="item"><b>Boşaltma Konum:</b> {{ is.bosaltma_konum }}</div>
+<div class="item"><b>Boşaltma Evrak Teslim:</b> {{ is.bosaltma_evrak_teslim_zamani }}</div>
+<div class="item"><b>Boşaltma:</b> {{ is.bosaltma_zamani }}</div>
+<div class="item"><b>Toplam Taşıma Günü:</b> {{ is.toplam_tasima_gunu }} gün</div>
+<div class="item"><b>Bekleme:</b> {{ is.yukleme_bekleme_gunu }} gün / {{ is.yukleme_bekleme_tutari }}</div>
+<div class="item"><b>Boşaltma Bekleme:</b> {{ is.bosaltma_bekleme_gunu }} gün / {{ is.bosaltma_bekleme_tutari }}</div>
+<div class="item"><b>1. Gelen Fatura:</b> {{ is.tasima1_gelen_fatura }} / {{ is.tasima1_gelen_fatura_tutari }}</div>
+</div>
+</div>
+
+<div class="box">
+<h3>2. Taşıma</h3>
+<div class="grid">
+<div class="item"><b>Var mı:</b> {{ is.ikinci_tasima_var_mi }}</div>
+<div class="item"><b>Araç:</b> {{ is.ikinci_arac_tipi }}</div>
+<div class="item"><b>Plaka:</b> {{ is.ikinci_plaka }}</div>
+<div class="item"><b>Şoför:</b> {{ is.ikinci_sofor_adi }}</div>
+<div class="item"><b>2. Nakliyeci:</b> {{ is.ikinci_nakliyeci }}</div>
+<div class="item"><b>2. Güncel Konum:</b> {{ is.ikinci_guncel_konum }}</div>
+<div class="item"><b>Yükleme:</b> {{ is.ikinci_yukleme_konum }}</div>
+<div class="item"><b>Boşaltma:</b> {{ is.ikinci_bosaltma_konum }}</div>
+<div class="item"><b>2. Gelen Fatura:</b> {{ is.tasima2_gelen_fatura }} / {{ is.tasima2_gelen_fatura_tutari }}</div>
+</div>
+</div>
+
+<div class="box">
+<h3>Gemi / Masraf / Kar</h3>
+<div class="grid">
+<div class="item"><b>Gemi:</b> {{ is.gemi_adi }}</div>
+<div class="item"><b>Kalkış:</b> {{ is.gemi_kalkis_tarihi }}</div>
+<div class="item"><b>Yanaşma:</b> {{ is.gemi_yanasma_tarihi }}</div>
+<div class="item"><b>Limandan Çıkış:</b> {{ is.limandan_cikis_tarihi }}</div>
+<div class="item"><b>Elektronka:</b> {{ is.elektronka_bedeli }}</div>
+<div class="item"><b>Liman:</b> {{ is.liman_masrafi }}</div>
+<div class="item"><b>Aktarma:</b> {{ is.aktarma_masrafi }}</div>
+<div class="item"><b>Dozvola:</b> {{ is.dozvola_masrafi }}</div>
+<div class="item"><b>Toplam Bekleme:</b> {{ is.toplam_bekleme_tutari }}</div>
+<div class="item"><b>Toplam Maliyet:</b> {{ is.toplam_maliyet }}</div>
+<div class="item"><b>Toplam Satış:</b> {{ is.toplam_satis }}</div>
+<div class="item"><b>Net Kar:</b> {{ is.net_kar }}</div>
+</div>
+</div>
+
+<div class="box">
+<h3>Notlar</h3>
+<div class="grid">
+<div class="item" style="grid-column: span 3;"><b>Not:</b> {{ is.notlar|linebreaksbr }}</div>
+</div>
+</div>
+
+<div class="box">
+<h3>Evraklar</h3>
+<div class="grid">
+
+<div class="item">
+<b>Yükleme Evrakı:</b><br>
+{% if is.yukleme_evraklari %}
+<a href="{{ is.yukleme_evraklari.url }}" target="_blank">Aç</a>
+{% else %}
+<span class="missing">Eksik</span>
+{% endif %}
+</div>
+
+<div class="item">
+<b>Gümrük Evrakı:</b><br>
+{% if is.gumruk_evraklari %}
+<a href="{{ is.gumruk_evraklari.url }}" target="_blank">Aç</a>
+{% else %}
+<span class="missing">Eksik</span>
+{% endif %}
+</div>
+
+<div class="item">
+<b>Yurtdışı Evrakı:</b><br>
+{% if is.yurtdisi_evraklari %}
+<a href="{{ is.yurtdisi_evraklari.url }}" target="_blank">Aç</a>
+{% else %}
+<span class="missing">Eksik</span>
+{% endif %}
+</div>
+
+<div class="item">
+<b>Boşaltma Evrakı:</b><br>
+{% if is.bosaltma_evraklari %}
+<a href="{{ is.bosaltma_evraklari.url }}" target="_blank">Aç</a>
+{% else %}
+<span class="missing">Eksik</span>
+{% endif %}
+</div>
+
+</div>
+</div>
+
+</div>
+
+</body>
+</html>
