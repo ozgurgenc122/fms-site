@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Eksik Bilgiler</title>
+<style>
+body{font-family:Arial;background:#f4f6f8;margin:0;font-size:13px;}
+.top{background:#c62828;color:white;padding:15px;font-weight:bold;font-size:22px;}
+.wrap{padding:15px;}
+.box{background:white;padding:15px;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,0.1);margin-bottom:15px;}
+a{color:#1565c0;font-weight:bold;text-decoration:none;}
+table{width:100%;border-collapse:collapse;background:white;}
+th{background:#0b6b53;color:white;padding:10px;text-align:left;}
+td{padding:8px;border-bottom:1px solid #eee;vertical-align:top;}
+.bad{color:#c62828;font-weight:bold;}
+.warn{color:#ef6c00;font-weight:bold;}
+.ok{color:#0b8f45;font-weight:bold;}
+.btn{background:#1565c0;color:white;padding:6px 10px;border-radius:5px;display:inline-block;}
+.badge-red{background:#c62828;color:white;padding:4px 7px;border-radius:5px;font-size:11px;font-weight:bold;display:inline-block;}
+.badge-yellow{background:#ef6c00;color:white;padding:4px 7px;border-radius:5px;font-size:11px;font-weight:bold;display:inline-block;}
+.progress{width:120px;background:#eee;border-radius:8px;overflow:hidden;height:12px;}
+.progress div{height:12px;background:#0b8f45;}
+ul{margin:0;padding-left:18px;}
+li{margin-bottom:3px;}
+</style>
+</head>
+<body>
+<div class="top">Eksik Bilgiler Listesi</div>
+<div class="wrap">
+<div class="box">
+<a href="{% url 'ana_sayfa' %}">← Ana Sayfa</a> |
+<a href="{% url 'eksik_evraklar' %}">Eksik Evraklar</a>
+</div>
+
+<div class="box">
+<b>Bu sayfa aktif işlerde eksik kalan temel bilgi, yük, finans, taşıma ve evrak bilgilerini gösterir.</b><br>
+Kırmızı = kritik eksik. Sarı = tamamlanması gereken eksik.
+</div>
+
+<div class="box">
+<table>
+<thead>
+<tr>
+<th>İş Kodu</th>
+<th>Müşteri</th>
+<th>İş</th>
+<th>Plaka</th>
+<th>Durum</th>
+<th>Tamamlanma</th>
+<th>Kritik / Toplam</th>
+<th>Eksikler</th>
+<th>İşlem</th>
+</tr>
+</thead>
+<tbody>
+{% for item in isler %}
+<tr>
+<td><b>{{ item.kayit.is_kodu }}</b></td>
+<td>{{ item.kayit.musteri_adi|default:"-" }}</td>
+<td>{{ item.kayit.isin_adi|default:"-" }}</td>
+<td>{{ item.kayit.plaka|default:"-" }}</td>
+<td>{{ item.kayit.durum }}</td>
+<td>
+<div class="progress"><div style="width:{{ item.oran }}%;"></div></div>
+<small>%{{ item.oran }}</small>
+</td>
+<td>
+{% if item.kritik_sayisi > 0 %}
+<span class="badge-red">{{ item.kritik_sayisi }} kritik</span>
+{% else %}
+<span class="badge-yellow">Kritik yok</span>
+{% endif %}
+<br><b>{{ item.eksik_sayisi }} toplam eksik</b>
+</td>
+<td>
+<ul>
+{% for eksik in item.eksikler %}
+<li>
+{% if eksik.seviye == "Kırmızı" %}<span class="bad">[Kritik]</span>{% else %}<span class="warn">[Eksik]</span>{% endif %}
+<b>{{ eksik.kategori }}:</b> {{ eksik.alan }}
+</li>
+{% endfor %}
+</ul>
+</td>
+<td><a class="btn" href="{% url 'is_duzenle' item.kayit.id %}">Düzenle</a></td>
+</tr>
+{% empty %}
+<tr><td colspan="9" class="ok">Aktif işlerde eksik bilgi yok.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>

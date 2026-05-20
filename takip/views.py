@@ -746,6 +746,22 @@ def yedek_geri_yukle(request, dosya_adi=None):
 
 
 @login_required(login_url="login")
+def eksik_bilgiler(request):
+    tum_isler = Is.objects.exclude(durum__in=["Tamamlandı", "İptal"]).order_by("sira_no", "id")
+    isler = []
+    for kayit in tum_isler:
+        eksikler = kayit.eksik_bilgi_listesi()
+        if eksikler:
+            isler.append({
+                "kayit": kayit,
+                "eksikler": eksikler,
+                "eksik_sayisi": len(eksikler),
+                "kritik_sayisi": len([x for x in eksikler if x.get("seviye") == "Kırmızı"]),
+                "oran": kayit.tamamlanma_orani(),
+            })
+    return render(request, "takip/eksik_bilgiler.html", {"isler": isler})
+
+@login_required(login_url="login")
 def eksik_evraklar(request):
     isler = [i for i in Is.objects.exclude(durum__in=["Tamamlandı", "İptal"]).order_by("sira_no", "id") if i.eksik_evrak_sayisi() > 0]
     return render(request, "takip/eksik_evraklar.html", {"isler": isler})

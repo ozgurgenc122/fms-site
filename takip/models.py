@@ -333,6 +333,144 @@ class Is(models.Model):
 
         return max(gun, 0)
 
+
+    def eksik_bilgi_listesi(self):
+        eksikler = []
+
+        def bos(deger):
+            return deger in [None, "", 0, Decimal("0")]
+
+        def ekle(kategori, alan, seviye="Sarı"):
+            eksikler.append({"kategori": kategori, "alan": alan, "seviye": seviye})
+
+        # Temel iş bilgileri
+        if not self.musteri_adi:
+            ekle("Temel Bilgi", "Müşteri adı eksik", "Kırmızı")
+        if not self.isin_adi:
+            ekle("Temel Bilgi", "İşin adı eksik", "Sarı")
+        if not self.hat:
+            ekle("Temel Bilgi", "Hat / güzergah eksik", "Sarı")
+        if not self.para_birimi:
+            ekle("Finans", "Para birimi seçilmemiş", "Kırmızı")
+
+        # Yük bilgileri
+        if not self.esya_cinsi:
+            ekle("Yük Bilgisi", "Eşya cinsi / yük bilgisi eksik", "Kırmızı")
+        if not self.kap:
+            ekle("Yük Bilgisi", "Kap / palet bilgisi eksik", "Sarı")
+        if not self.kg:
+            ekle("Yük Bilgisi", "Kg bilgisi eksik", "Sarı")
+        if not self.gtip:
+            ekle("Yük Bilgisi", "GTİP bilgisi eksik", "Sarı")
+        if not self.arac_tipi:
+            ekle("Yük Bilgisi", "Araç tipi eksik", "Sarı")
+
+        # 1. taşıma bilgileri
+        if not self.plaka:
+            ekle("1. Taşıma", "Plaka eksik", "Kırmızı")
+        if not self.sofor_adi:
+            ekle("1. Taşıma", "Şoför adı eksik", "Sarı")
+        if not self.sofor_no:
+            ekle("1. Taşıma", "Şoför telefonu eksik", "Sarı")
+        if not self.nakliyeci:
+            ekle("1. Taşıma", "Nakliyeci bilgisi eksik", "Sarı")
+        if not self.planlanan_yukleme_zamani and not self.gerceklesen_yukleme_zamani:
+            ekle("1. Taşıma", "Yükleme tarihi eksik", "Kırmızı")
+        if not self.yukleme_konum:
+            ekle("1. Taşıma", "Yükleme konumu eksik", "Sarı")
+        if not self.bosaltma_konum:
+            ekle("1. Taşıma", "Boşaltma konumu eksik", "Sarı")
+        if self.durum not in ["Teklif", "Planlandı", "Yüklemede"] and not self.bosaltma_zamani:
+            ekle("1. Taşıma", "Boşaltma tarihi eksik", "Sarı")
+
+        # 2. taşıma bilgileri
+        if self.ikinci_tasima_var_mi == "Evet":
+            if not self.ikinci_plaka:
+                ekle("2. Taşıma", "2. taşıma plakası eksik", "Kırmızı")
+            if not self.ikinci_sofor_adi:
+                ekle("2. Taşıma", "2. taşıma şoför adı eksik", "Sarı")
+            if not self.ikinci_sofor_no:
+                ekle("2. Taşıma", "2. taşıma şoför telefonu eksik", "Sarı")
+            if not self.ikinci_nakliyeci:
+                ekle("2. Taşıma", "2. taşıma nakliyeci bilgisi eksik", "Sarı")
+            if not self.ikinci_yukleme_konum:
+                ekle("2. Taşıma", "2. taşıma yükleme konumu eksik", "Sarı")
+            if not self.ikinci_bosaltma_konum:
+                ekle("2. Taşıma", "2. taşıma boşaltma konumu eksik", "Sarı")
+            if not self.ikinci_planlanan_yukleme_zamani and not self.ikinci_gerceklesen_yukleme_zamani:
+                ekle("2. Taşıma", "2. taşıma yükleme tarihi eksik", "Sarı")
+
+        # Finans bilgileri
+        if bos(self.fatura_tutari):
+            ekle("Finans", "Yük/fatura tutarı eksik", "Kırmızı")
+        if bos(self.hesaplanan_teminat):
+            ekle("Finans", "Hesaplanan teminat tutarı eksik", "Sarı")
+        if bos(self.fatura_edilecek_teminat_tutari):
+            ekle("Finans", "Fatura edilecek teminat tutarı eksik", "Sarı")
+        if self.teminat_satisa_dahil_mi == "Hayır" and not self.teminat_ayri_fatura_no:
+            ekle("Finans", "Teminat ayrı fatura numarası eksik", "Kırmızı")
+        if not self.satis_faturasi:
+            ekle("Finans", "Satış faturası numarası eksik", "Kırmızı")
+        if bos(self.satis_faturasi_tutari):
+            ekle("Finans", "Satış faturası tutarı eksik", "Kırmızı")
+        if not self.tasima1_gelen_fatura:
+            ekle("Finans", "1. taşıma gelen fatura numarası eksik", "Sarı")
+        if bos(self.tasima1_gelen_fatura_tutari):
+            ekle("Finans", "1. taşıma gelen fatura tutarı eksik", "Sarı")
+        if self.ikinci_tasima_var_mi == "Evet":
+            if not self.tasima2_gelen_fatura:
+                ekle("Finans", "2. taşıma gelen fatura numarası eksik", "Sarı")
+            if bos(self.tasima2_gelen_fatura_tutari):
+                ekle("Finans", "2. taşıma gelen fatura tutarı eksik", "Sarı")
+        if self.gelen_fatura_numarasi and bos(self.gelen_fatura_tutari):
+            ekle("Finans", "Gelen fatura tutarı eksik", "Sarı")
+        if self.gelen_fatura_tutari and not self.gelen_fatura_numarasi:
+            ekle("Finans", "Gelen fatura numarası eksik", "Sarı")
+        if self.gelen_gemi_faturasi and bos(self.gemi_faturasi_tutari):
+            ekle("Finans", "Gemi faturası tutarı eksik", "Sarı")
+
+        # Gemi / liman bilgileri
+        if self.gemi_adi or self.gemi_kalkis_tarihi or self.gemi_yanasma_tarihi:
+            if not self.gemi_adi:
+                ekle("Gemi / Liman", "Gemi adı eksik", "Sarı")
+            if not self.gemi_kalkis_tarihi:
+                ekle("Gemi / Liman", "Gemi kalkış tarihi eksik", "Sarı")
+            if not self.gemi_yanasma_tarihi:
+                ekle("Gemi / Liman", "Gemi yanaşma tarihi eksik", "Sarı")
+
+        # Evrak bilgileri
+        if not self.yukleme_evraklari:
+            ekle("Evrak", "Yükleme evrakı eksik", "Sarı")
+        if not self.gumruk_evraklari:
+            ekle("Evrak", "Gümrük evrakı eksik", "Sarı")
+        if not self.yurtdisi_evraklari:
+            ekle("Evrak", "Yurtdışı evrakı eksik", "Sarı")
+        if not self.bosaltma_evraklari:
+            ekle("Evrak", "Boşaltma / teslim evrakı eksik", "Kırmızı")
+
+        return eksikler
+
+    def eksik_bilgi_sayisi(self):
+        return len(self.eksik_bilgi_listesi())
+
+    def kritik_eksik_sayisi(self):
+        return len([x for x in self.eksik_bilgi_listesi() if x.get("seviye") == "Kırmızı"])
+
+    def eksik_bilgi_durumu(self):
+        kritik = self.kritik_eksik_sayisi()
+        toplam = self.eksik_bilgi_sayisi()
+        if toplam == 0:
+            return "Tam"
+        if kritik > 0:
+            return f"{kritik} kritik / {toplam} eksik"
+        return f"{toplam} eksik"
+
+    def tamamlanma_orani(self):
+        toplam_kontrol = 42
+        eksik = self.eksik_bilgi_sayisi()
+        oran = int(max(0, min(100, ((toplam_kontrol - eksik) / toplam_kontrol) * 100)))
+        return oran
+
     def eksik_evrak_sayisi(self):
         sayi = 0
         if not self.yukleme_evraklari:

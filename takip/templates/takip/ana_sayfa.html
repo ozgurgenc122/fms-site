@@ -42,6 +42,9 @@ tr:hover{background:#f8f8f8;}
 .delete{background:#c62828;}
 .row-risk{background:#fff1f1;}
 .row-warning{background:#fff8e1;}
+.badge-red{background:#c62828;color:white;padding:4px 7px;border-radius:5px;font-size:11px;font-weight:bold;display:inline-block;}
+.badge-yellow{background:#ef6c00;color:white;padding:4px 7px;border-radius:5px;font-size:11px;font-weight:bold;display:inline-block;}
+.badge-green{background:#0b8f45;color:white;padding:4px 7px;border-radius:5px;font-size:11px;font-weight:bold;display:inline-block;}
 
 @media(max-width:900px){
 .cards{grid-template-columns:repeat(2,1fr);}
@@ -176,7 +179,7 @@ Satış: {{ toplamlar.TRY.satis|floatformat:2 }} TRY
 <a href="{% url 'cari_listesi' %}">Cari Listesi</a>
 <a href="{% url 'risk_listesi' %}">Risk Listesi</a>
 <a href="{% url 'tamamlanan_isler' %}">Tamamlanan İşler</a>
-<a href="{% url 'eksik_evraklar' %}" style="background:#ef6c00;">Eksik Evraklar</a>
+<a href="{% url 'eksik_bilgiler' %}" style="background:#c62828;">Eksik Bilgiler</a>
 <a href="{% url 'guvenli_cikis' %}" style="background:#c62828;">Güvenli Çıkış</a>
 </div>
 
@@ -226,6 +229,7 @@ Satış: {{ toplamlar.TRY.satis|floatformat:2 }} TRY
 <th>Kâr</th>
 <th>Süre</th>
 <th>Risk</th>
+<th>Eksik Bilgi</th>
 <th>İşlem</th>
 </tr>
 </thead>
@@ -233,7 +237,7 @@ Satış: {{ toplamlar.TRY.satis|floatformat:2 }} TRY
 <tbody>
 {% for i in isler %}
 {% if i.durum != "Tamamlandı" %}
-<tr class="{% if i.risk_durumu_goster == 'RISKLI' %}row-risk{% elif i.eksik_evrak_sayisi > 0 %}row-warning{% endif %}">
+<tr class="{% if i.risk_durumu_goster == 'RISKLI' or i.kritik_eksik_sayisi > 0 %}row-risk{% elif i.eksik_bilgi_sayisi > 0 %}row-warning{% endif %}">
 
 <td>{{ i.sira_no }}</td>
 <td><b>{{ i.is_kodu }}</b></td>
@@ -296,6 +300,17 @@ Satış: {{ toplamlar.TRY.satis|floatformat:2 }} TRY
 </td>
 
 <td>
+{% if i.eksik_bilgi_sayisi == 0 %}
+<span class="badge-green">Tam</span>
+{% elif i.kritik_eksik_sayisi > 0 %}
+<a href="{% url 'eksik_bilgiler' %}" class="badge-red">{{ i.eksik_bilgi_durumu }}</a>
+{% else %}
+<a href="{% url 'eksik_bilgiler' %}" class="badge-yellow">{{ i.eksik_bilgi_durumu }}</a>
+{% endif %}
+<br><small>%{{ i.tamamlanma_orani }} tamam</small>
+</td>
+
+<td>
 <div class="links">
 <a class="show" href="{% url 'is_goster' i.id %}">Göster</a>
 <a class="edit" href="{% url 'is_duzenle' i.id %}">Düzenle</a>
@@ -308,7 +323,7 @@ Satış: {{ toplamlar.TRY.satis|floatformat:2 }} TRY
 {% endif %}
 {% empty %}
 <tr>
-<td colspan="14">Kayıt bulunamadı.</td>
+<td colspan="15">Kayıt bulunamadı.</td>
 </tr>
 {% endfor %}
 </tbody>
