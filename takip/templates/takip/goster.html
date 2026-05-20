@@ -30,7 +30,6 @@ a { color:#1d70b8; font-weight:bold; }
 <h3>Genel</h3>
 <div class="grid">
 <div class="item"><b>Sıra:</b> {{ is.sira_no }}</div>
-<div class="item"><b>İş Kodu:</b> {{ is.is_kodu }}</div>
 <div class="item"><b>Müşteri:</b> {{ is.musteri_adi }}</div>
 <div class="item"><b>İş:</b> {{ is.isin_adi }}</div>
 <div class="item"><b>Durum:</b> {{ is.durum }}</div>
@@ -149,31 +148,6 @@ a { color:#1d70b8; font-weight:bold; }
 </div>
 
 </div>
-</div>
-
-
-<div class="box">
-<h3>İş Geçmişi</h3>
-{% if gecmisler %}
-<table style="width:100%; border-collapse:collapse;">
-<tr style="background:#0b6b53;color:white;">
-<th style="padding:8px;text-align:left;">Tarih</th>
-<th style="padding:8px;text-align:left;">Kullanıcı</th>
-<th style="padding:8px;text-align:left;">İşlem</th>
-<th style="padding:8px;text-align:left;">Açıklama</th>
-</tr>
-{% for g in gecmisler %}
-<tr>
-<td style="padding:8px;border-bottom:1px solid #eee;">{{ g.tarih|date:"d.m.Y H:i" }}</td>
-<td style="padding:8px;border-bottom:1px solid #eee;">{% if g.kullanici %}{{ g.kullanici.username }}{% else %}-{% endif %}</td>
-<td style="padding:8px;border-bottom:1px solid #eee;">{{ g.islem }}</td>
-<td style="padding:8px;border-bottom:1px solid #eee;">{{ g.aciklama }}</td>
-</tr>
-{% endfor %}
-</table>
-{% else %}
-Bu iş için henüz geçmiş kaydı yok.
-{% endif %}
 </div>
 
 </div>

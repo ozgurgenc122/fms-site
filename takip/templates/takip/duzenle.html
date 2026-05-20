@@ -87,15 +87,6 @@ function teminatKontrol(){
     if(secim==="Hayır"){alan.classList.remove("hidden");}
     else{alan.classList.add("hidden");}
 }
-
-function odemeOnayKontrol(){
-    var odeme = document.querySelector('select[name="odeme_durumu"]');
-    if(odeme && odeme.value === "Ödendi"){
-        return confirm("Bu işi ÖDENDİ olarak kaydediyorsunuz. Emin misiniz?");
-    }
-    return true;
-}
-
 window.onload=function(){
     ikinciTasimaKontrol();
     teminatKontrol();
@@ -109,7 +100,7 @@ window.onload=function(){
 <div class="top">İş Düzenle - {{ is.musteri_adi }} / {{ is.isin_adi }}</div>
 
 <div class="wrap">
-<form method="POST" enctype="multipart/form-data" onsubmit="return odemeOnayKontrol();">
+<form method="POST" enctype="multipart/form-data">
 {% csrf_token %}
 
 {% if uyarilar %}

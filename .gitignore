@@ -1,0 +1,5 @@
+yedekler/
+*.sqlite3-journal
+__pycache__/
+*.pyc
+.env

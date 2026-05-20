@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 import os
+import json
 import shutil
 import tempfile
 import zipfile
@@ -639,6 +640,59 @@ def yedek_dosyasi_olustur(on_ek="fms_yedek"):
     return hedef
 
 
+def google_drive_yedek_yukle(zip_yolu):
+    """Oluşturulan ZIP yedeğini Google Drive'daki FMS YEDEKLER klasörüne yükler.
+    Hata olursa siteyi bozmaz; yedek yerelde kalır ve mesaj döner.
+    """
+    credentials_json = os.environ.get("GOOGLE_DRIVE_CREDENTIALS")
+    if not credentials_json:
+        return False, "GOOGLE_DRIVE_CREDENTIALS tanımlı değil."
+
+    try:
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+        from googleapiclient.http import MediaFileUpload
+
+        credentials_info = json.loads(credentials_json)
+        credentials = service_account.Credentials.from_service_account_info(
+            credentials_info,
+            scopes=["https://www.googleapis.com/auth/drive"],
+        )
+        service = build("drive", "v3", credentials=credentials)
+
+        folder_id = os.environ.get("GOOGLE_DRIVE_FOLDER_ID")
+
+        if not folder_id:
+            sonuc = service.files().list(
+                q="mimeType='application/vnd.google-apps.folder' and name='FMS YEDEKLER' and trashed=false",
+                spaces="drive",
+                fields="files(id, name)",
+                includeItemsFromAllDrives=True,
+                supportsAllDrives=True,
+            ).execute()
+            klasorler = sonuc.get("files", [])
+            if not klasorler:
+                return False, "Google Drive'da 'FMS YEDEKLER' klasörü bulunamadı veya servis hesabıyla paylaşılmadı."
+            folder_id = klasorler[0]["id"]
+
+        dosya_adi = os.path.basename(zip_yolu)
+        file_metadata = {
+            "name": dosya_adi,
+            "parents": [folder_id],
+        }
+        media = MediaFileUpload(zip_yolu, mimetype="application/zip", resumable=True)
+        service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields="id",
+            supportsAllDrives=True,
+        ).execute()
+        return True, "Google Drive'a yüklendi."
+
+    except Exception as e:
+        return False, str(e)
+
+
 def yedekleri_getir():
     liste = []
     klasor = yedek_klasoru()
@@ -662,8 +716,14 @@ def yedek_listesi(request):
 
 @login_required(login_url="login")
 def yedek_al(request):
-    yedek_dosyasi_olustur()
-    messages.success(request, "Yedek başarıyla alındı. Yedekler sayfasından indirebilir veya geri yükleyebilirsiniz.")
+    zip_yolu = yedek_dosyasi_olustur()
+    drive_ok, drive_mesaj = google_drive_yedek_yukle(zip_yolu)
+
+    if drive_ok:
+        messages.success(request, "Yedek başarıyla alındı ve Google Drive'a yüklendi.")
+    else:
+        messages.warning(request, f"Yedek yerelde alındı; Google Drive'a yüklenemedi: {drive_mesaj}")
+
     return redirect("yedek_listesi")
 
 
