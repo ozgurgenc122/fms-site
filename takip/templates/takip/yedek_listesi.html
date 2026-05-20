@@ -36,6 +36,19 @@ td{padding:10px;border-bottom:1px solid #eee;}
 </div>
 {% endif %}
 
+
+<div class="box" style="border:2px solid #0b6b53;">
+<h3>Media ZIP Yükle — Eski Evrakları Geri Getir</h3>
+<p style="margin-top:0; color:#555;">
+Bilgisayarındaki <b>media.zip</b> veya <b>MEDIA YEDEK.zip</b> dosyasını buradan yükle. Bu işlem sadece evrak/fotoğraf/PDF dosyalarını <b>media</b> klasörüne açar; iş kayıtlarına ve veritabanına dokunmaz.
+</p>
+<form method="POST" enctype="multipart/form-data" action="{% url 'media_zip_yukle' %}" onsubmit="return confirm('Media ZIP dosyası sunucuya açılacak. Mevcut aynı adlı dosyaların üzerine yazılabilir. Devam edilsin mi?')">
+{% csrf_token %}
+<input type="file" name="media_zip" accept=".zip" required>
+<button type="submit">Media ZIP Yükle</button>
+</form>
+</div>
+
 <div class="box">
 <h3>Dışarıdan ZIP Yedek Yükle</h3>
 <form method="POST" enctype="multipart/form-data" action="{% url 'yedek_geri_yukle_yukle' %}" onsubmit="return confirm('Seçtiğiniz yedek geri yüklenecek. Mevcut veriler değişir. Devam edilsin mi?')">

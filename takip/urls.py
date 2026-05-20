@@ -10,6 +10,7 @@ urlpatterns = [
     path("yedek-sil/<str:dosya_adi>/", views.yedek_sil, name="yedek_sil"),
     path("yedek-geri-yukle/", views.yedek_geri_yukle, name="yedek_geri_yukle_yukle"),
     path("yedek-geri-yukle/<str:dosya_adi>/", views.yedek_geri_yukle, name="yedek_geri_yukle"),
+    path("media-zip-yukle/", views.media_zip_yukle, name="media_zip_yukle"),
     path("duzenle/<int:id>/", views.is_duzenle, name="is_duzenle"),
     path("goster/<int:id>/", views.is_goster, name="is_goster"),
     path("sil/<int:id>/", views.is_sil, name="is_sil"),

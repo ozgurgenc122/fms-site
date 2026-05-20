@@ -806,6 +806,90 @@ def yedek_geri_yukle(request, dosya_adi=None):
 
 
 @login_required(login_url="login")
+def media_zip_yukle(request):
+    """Bilgisayardan yüklenen media.zip dosyasını canlı MEDIA_ROOT içine güvenli şekilde açar.
+    ZIP içinde ister media/evraklar/... olsun, ister direkt evraklar/... olsun çalışır.
+    Mevcut dosyaların üzerine aynı isimle yazabilir; veritabanına dokunmaz.
+    """
+    if request.method != "POST":
+        return redirect("yedek_listesi")
+
+    yuklenen = request.FILES.get("media_zip")
+    if not yuklenen:
+        messages.error(request, "Media ZIP dosyası seçilmedi.")
+        return redirect("yedek_listesi")
+
+    if not yuklenen.name.lower().endswith(".zip"):
+        messages.error(request, "Lütfen sadece .zip dosyası yükleyin.")
+        return redirect("yedek_listesi")
+
+    # İşlemden önce mevcut durumu korumak için küçük güvenlik yedeği alır.
+    try:
+        yedek_dosyasi_olustur(on_ek="media_yukleme_oncesi")
+    except Exception as e:
+        messages.warning(request, f"Media yükleme öncesi güvenlik yedeği alınamadı: {e}")
+
+    media_root = os.path.abspath(str(settings.MEDIA_ROOT))
+    os.makedirs(media_root, exist_ok=True)
+
+    gecici_zip = None
+    yuklenen_dosya_sayisi = 0
+    yuklenen_boyut = 0
+
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tmp_file:
+            gecici_zip = tmp_file.name
+            for parca in yuklenen.chunks():
+                tmp_file.write(parca)
+
+        with zipfile.ZipFile(gecici_zip, "r") as zip_file:
+            for bilgi in zip_file.infolist():
+                if bilgi.is_dir():
+                    continue
+
+                zip_adi = bilgi.filename.replace("\\", "/")
+                parcalar = [p for p in zip_adi.split("/") if p not in ["", "."]]
+                if not parcalar:
+                    continue
+
+                # ZIP içinde media/ klasörü varsa onu kırpıyoruz.
+                # Örn: media/evraklar/bosaltma/a.pdf -> evraklar/bosaltma/a.pdf
+                if parcalar[0].lower() == "media":
+                    parcalar = parcalar[1:]
+
+                if not parcalar or any(p == ".." for p in parcalar):
+                    continue
+
+                hedef_yol = os.path.abspath(os.path.join(media_root, *parcalar))
+                if not hedef_yol.startswith(media_root + os.sep):
+                    continue
+
+                os.makedirs(os.path.dirname(hedef_yol), exist_ok=True)
+
+                with zip_file.open(bilgi, "r") as kaynak, open(hedef_yol, "wb") as hedef:
+                    shutil.copyfileobj(kaynak, hedef)
+
+                yuklenen_dosya_sayisi += 1
+                yuklenen_boyut += bilgi.file_size
+
+        messages.success(
+            request,
+            f"Media dosyaları başarıyla yüklendi. {yuklenen_dosya_sayisi} dosya aktarıldı. "
+            f"Toplam: {round(yuklenen_boyut / (1024 * 1024), 2)} MB"
+        )
+
+    except zipfile.BadZipFile:
+        messages.error(request, "Yüklenen dosya geçerli bir ZIP değil.")
+    except Exception as e:
+        messages.error(request, f"Media ZIP yüklenirken hata oluştu: {e}")
+    finally:
+        if gecici_zip and os.path.exists(gecici_zip):
+            os.remove(gecici_zip)
+
+    return redirect("yedek_listesi")
+
+
+@login_required(login_url="login")
 def eksik_bilgiler(request):
     tum_isler = Is.objects.exclude(durum__in=["Tamamlandı", "İptal"]).order_by("sira_no", "id")
     isler = []
