@@ -1,5 +1,10 @@
-yedekler/
-*.sqlite3-journal
-__pycache__/
-*.pyc
 .env
+*.sqlite3
+db.sqlite3
+db_yedek*.sqlite3
+media/
+yedekler/
+staticfiles/
+__pycache__/
+*.py[cod]
+.DS_Store

@@ -340,16 +340,15 @@ href="{% url 'is_duzenle' is.id %}">
 Düzenle
 </a>
 
-<a class="copy"
-href="{% url 'is_kopyala' is.id %}">
-Kopyala
-</a>
+<form method="POST" action="{% url 'is_kopyala' is.id %}" style="display:inline;">
+{% csrf_token %}
+<button class="copy" type="submit">Kopyala</button>
+</form>
 
-<a class="delete"
-onclick="return confirm('Bu tamamlanan işi silmek istediğine emin misin?')"
-href="{% url 'is_sil' is.id %}">
-Sil
-</a>
+<form method="POST" action="{% url 'is_sil' is.id %}" style="display:inline;" onsubmit="return confirm('Bu tamamlanan işi silmek istediğine emin misin?')">
+{% csrf_token %}
+<button class="delete" type="submit">Sil</button>
+</form>
 
 </div>
 </td>

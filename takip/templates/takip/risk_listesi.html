@@ -100,7 +100,7 @@ Risk Kayıtları
 
 <br><br>
 
-<a href="/risk/sil/{{ r.id }}/">Sil</a>
+<form method="POST" action="{% url 'risk_sil' r.id %}" onsubmit="return confirm('Bu risk kaydı silinsin mi?')">{% csrf_token %}<button type="submit">Sil</button></form>
 
 </div>
 

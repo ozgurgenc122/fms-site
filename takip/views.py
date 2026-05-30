@@ -356,14 +356,21 @@ def is_goster(request, id):
 
 @login_required(login_url="login")
 def is_sil(request, id):
+    if request.method != "POST":
+        messages.error(request, "Silme işlemi için güvenli onay gereklidir.")
+        return redirect("ana_sayfa")
     kayit = get_object_or_404(Is, id=id)
     kayit.delete()
     yeniden_sirala()
+    messages.success(request, "İş kaydı silindi.")
     return redirect("ana_sayfa")
 
 
 @login_required(login_url="login")
 def is_kopyala(request, id):
+    if request.method != "POST":
+        messages.error(request, "Kopyalama işlemi için güvenli onay gereklidir.")
+        return redirect("ana_sayfa")
     eski = get_object_or_404(Is, id=id)
 
     yeni = Is.objects.create(
@@ -394,6 +401,9 @@ def is_kopyala(request, id):
 
 @login_required(login_url="login")
 def aktif_ise_gecir(request, id):
+    if request.method != "POST":
+        messages.error(request, "Aktife geçirme işlemi için güvenli onay gereklidir.")
+        return redirect("ana_sayfa")
     kayit = get_object_or_404(Is, id=id)
 
     if kayit.durum == "Teklif":
@@ -716,6 +726,8 @@ def yedek_listesi(request):
 
 @login_required(login_url="login")
 def yedek_al(request):
+    if request.method != "POST":
+        return redirect("yedek_listesi")
     zip_yolu = yedek_dosyasi_olustur()
     drive_ok, drive_mesaj = google_drive_yedek_yukle(zip_yolu)
 
@@ -749,13 +761,35 @@ def yedek_sil(request, dosya_adi):
     return redirect("yedek_listesi")
 
 
+def guvenli_zip_ac(zip_yolu, hedef_klasor):
+    """ZIP içeriğini path traversal saldırılarına karşı güvenli açar."""
+    hedef_klasor = os.path.abspath(hedef_klasor)
+    with zipfile.ZipFile(zip_yolu, "r") as zip_file:
+        for bilgi in zip_file.infolist():
+            zip_adi = bilgi.filename.replace("\\", "/")
+            parcalar = [p for p in zip_adi.split("/") if p not in ("", ".")]
+            if not parcalar or any(p == ".." for p in parcalar):
+                continue
+
+            hedef_yol = os.path.abspath(os.path.join(hedef_klasor, *parcalar))
+            if not hedef_yol.startswith(hedef_klasor + os.sep) and hedef_yol != hedef_klasor:
+                continue
+
+            if bilgi.is_dir():
+                os.makedirs(hedef_yol, exist_ok=True)
+                continue
+
+            os.makedirs(os.path.dirname(hedef_yol), exist_ok=True)
+            with zip_file.open(bilgi, "r") as kaynak, open(hedef_yol, "wb") as hedef:
+                shutil.copyfileobj(kaynak, hedef)
+
+
 def yedekten_geri_yukle(zip_yolu):
     # Her geri yüklemeden hemen önce güvenlik yedeği alır.
     yedek_dosyasi_olustur(on_ek="geri_yukleme_oncesi")
 
     with tempfile.TemporaryDirectory() as tmp:
-        with zipfile.ZipFile(zip_yolu, "r") as zip_file:
-            zip_file.extractall(tmp)
+        guvenli_zip_ac(zip_yolu, tmp)
 
         yedek_db = os.path.join(tmp, "db.sqlite3")
         mevcut_db = os.path.join(settings.BASE_DIR, "db.sqlite3")
@@ -933,8 +967,12 @@ def risk_ekle(request):
 
 @login_required(login_url="login")
 def risk_sil(request, id):
+    if request.method != "POST":
+        messages.error(request, "Silme işlemi için güvenli onay gereklidir.")
+        return redirect("risk_listesi")
     kayit = get_object_or_404(RiskKaydi, id=id)
     kayit.delete()
+    messages.success(request, "Risk kaydı silindi.")
     return redirect("risk_listesi")
 
 @login_required(login_url="login")

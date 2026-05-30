@@ -175,7 +175,7 @@ Satış: {{ toplamlar.TRY.satis|floatformat:2 }} TRY
 <a href="{% url 'excel_import' %}">Excel İçe Aktar</a>
 <a href="{% url 'excel_sablon' %}">Import Şablonu</a>
 <a href="{% url 'yedek_listesi' %}">Yedekler</a>
-<a href="{% url 'yedek_al' %}">Yedek Al</a>
+<form method="POST" action="{% url 'yedek_al' %}" style="display:inline;">{% csrf_token %}<button type="submit">Yedek Al</button></form>
 <a href="{% url 'cari_listesi' %}">Cari Listesi</a>
 <a href="{% url 'risk_listesi' %}">Risk Listesi</a>
 <a href="{% url 'tamamlanan_isler' %}">Tamamlanan İşler</a>
@@ -314,8 +314,8 @@ Satış: {{ toplamlar.TRY.satis|floatformat:2 }} TRY
 <div class="links">
 <a class="show" href="{% url 'is_goster' i.id %}">Göster</a>
 <a class="edit" href="{% url 'is_duzenle' i.id %}">Düzenle</a>
-<a class="copy" href="{% url 'is_kopyala' i.id %}">Kopyala</a>
-<a class="delete" onclick="return confirm('Bu işi silmek istediğine emin misin?')" href="{% url 'is_sil' i.id %}">Sil</a>
+<form method="POST" action="{% url 'is_kopyala' i.id %}" style="display:inline;">{% csrf_token %}<button class="copy" type="submit">Kopyala</button></form>
+<form method="POST" action="{% url 'is_sil' i.id %}" style="display:inline;" onsubmit="return confirm('Bu işi silmek istediğine emin misin?')">{% csrf_token %}<button class="delete" type="submit">Sil</button></form>
 </div>
 </td>
 

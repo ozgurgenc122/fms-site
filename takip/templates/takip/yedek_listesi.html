@@ -25,7 +25,7 @@ td{padding:10px;border-bottom:1px solid #eee;}
 
 <div class="box">
 <a href="{% url 'ana_sayfa' %}">← Ana Sayfa</a>
-<a href="{% url 'yedek_al' %}">Yeni Yedek Al</a>
+<form method="POST" action="{% url 'yedek_al' %}" style="display:inline;">{% csrf_token %}<button type="submit">Yeni Yedek Al</button></form>
 </div>
 
 {% if messages %}
