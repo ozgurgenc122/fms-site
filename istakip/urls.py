@@ -13,5 +13,5 @@ urlpatterns = [
 
 # Media dosyalarını sadece yerel geliştirmede Django servis etsin.
 # Canlıda media için Cloudinary / web server kullanılmalı.
-if settings.DEBUG:
+
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
